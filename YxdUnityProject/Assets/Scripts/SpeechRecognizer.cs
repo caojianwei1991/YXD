@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
+using SimpleJSON;
+using System;
 
 public class SpeechRecognizer : MonoBehaviour
 {
@@ -7,7 +9,7 @@ public class SpeechRecognizer : MonoBehaviour
 	// Use this for initialization
 	void Start ()
 	{
-	
+
 	}
 	
 	// Update is called once per frame
