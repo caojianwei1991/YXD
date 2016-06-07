@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.sinovoice.example"
+    package="com.kudospark.yxd"
     android:versionCode="1"
     android:versionName="1.0" >
 
@@ -18,7 +18,7 @@
          >
         <activity
             android:label="@string/app_name"
-            android:name=".HciCloudExampleActivity"
+            android:name="com.kudospark.yxd.HciCloudExampleActivity"
 			android:screenOrientation="portrait"
 			>
             <intent-filter >
