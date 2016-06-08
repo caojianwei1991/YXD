@@ -8,8 +8,9 @@ using System.Net;
 
 public class WWWProvider : MonoBehaviour
 {
-	public static readonly string DownLoadURL = "http://ezlearn.kudospark.com/";
-	string URL = "{0}/app2016/interface.php?schoolid=ezlearn&method=";
+	readonly string DownLoadURL = "http://ezlearn.kudospark.com/";
+	readonly string GetServerURL = "/app2016/interface.php?schoolid=ezlearn&method=";
+	string URL;
 	public static string RedirectURL = "";
 	static WWWProvider instance;
 
@@ -27,7 +28,7 @@ public class WWWProvider : MonoBehaviour
 		}
 	}
 
-	void GetRedirectURL ()
+	void GetRedirectURL (string MethodName)
 	{
 		if (RedirectURL == "")
 		{
@@ -46,13 +47,16 @@ public class WWWProvider : MonoBehaviour
 				RedirectURL = "http://52.221.227.248";
 				Debug.LogError (string.Format ("StartWWWCommunication.GetRedirect Fail! Exception:{0}", e.Message));
 			}
-			URL = string.Format (URL, RedirectURL);
+		}
+		if (MethodName == "GetServerURL")
+		{
+			URL = RedirectURL + GetServerURL;
 		}
 	}
 
 	public void StartWWWCommunication (string MethodName, JSONClass JsonClass, Action<bool, string> OnSuccess)
 	{
-		GetRedirectURL ();
+		GetRedirectURL (MethodName);
 		StartCoroutine (WWWCommunication (MethodName, JsonClass, OnSuccess));
 	}
 

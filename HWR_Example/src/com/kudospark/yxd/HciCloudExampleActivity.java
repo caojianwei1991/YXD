@@ -12,13 +12,17 @@ import org.json.JSONObject;
 
 import android.os.Bundle;
 import android.os.Environment;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.iflytek.cloud.EvaluatorListener;
+import com.iflytek.cloud.EvaluatorResult;
 import com.iflytek.cloud.RecognizerListener;
 import com.iflytek.cloud.RecognizerResult;
 import com.iflytek.cloud.SpeechConstant;
 import com.iflytek.cloud.SpeechError;
+import com.iflytek.cloud.SpeechEvaluator;
 import com.iflytek.cloud.SpeechRecognizer;
 import com.iflytek.cloud.SpeechUtility;
 import com.sinovoice.hcicloudsdk.api.HciCloudSys;
@@ -33,9 +37,10 @@ public class HciCloudExampleActivity extends UnityPlayerActivity  {
 	private static final String TAG = "HciCloudExampleActivity";
     private AccountInfo mAccountInfo;
 
-    // 语音识别对象
- 	private SpeechRecognizer mAsr;
+    private SpeechEvaluator mIse;
+    private SpeechRecognizer mAsr;
  	private Toast mToast;
+ 	private String mLastResult;
  	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -79,14 +84,24 @@ public class HciCloudExampleActivity extends UnityPlayerActivity  {
         }
 	}
 	
-	public void StartSpeechRecognizer(String language)
+	public void StartIse(String language, String evaText)
 	{
-		mAsr = SpeechRecognizer.createRecognizer(this, null);
-		mAsr.setParameter(SpeechConstant.DOMAIN, "iat"); 
-		mAsr.setParameter(SpeechConstant.LANGUAGE, language);
-		mAsr.setParameter(SpeechConstant.ACCENT, "mandarin"); 
-		mAsr.setParameter(SpeechConstant.SAMPLE_RATE, "16000"); 
-		Log.i(TAG, "StartSpeechRecognizer Result: " + mAsr.startListening(mRecoListener));
+		mIse = SpeechEvaluator.createEvaluator(HciCloudExampleActivity.this, null);
+		mIse.setParameter(SpeechConstant.LANGUAGE, language);
+		mIse.setParameter(SpeechConstant.ISE_CATEGORY, "read_word");
+		mIse.setParameter(SpeechConstant.TEXT_ENCODING, "utf-8");
+		//mIse.setParameter(SpeechConstant.VAD_BOS, vad_bos);
+		//mIse.setParameter(SpeechConstant.VAD_EOS, vad_eos);
+		//mIse.setParameter(SpeechConstant.KEY_SPEECH_TIMEOUT, speech_timeout);
+		//mIse.setParameter(SpeechConstant.RESULT_LEVEL, result_level);
+		
+//		mAsr = SpeechRecognizer.createRecognizer(this, null);
+//		mAsr.setParameter(SpeechConstant.DOMAIN, "iat"); 
+//		mAsr.setParameter(SpeechConstant.LANGUAGE, language);
+//		mAsr.setParameter(SpeechConstant.ACCENT, "mandarin"); 
+//		mAsr.setParameter(SpeechConstant.SAMPLE_RATE, "16000"); 
+//		Log.i(TAG, "StartSpeechRecognizer Result: " + mAsr.startListening(mRecoListener));
+		Log.i(TAG, "StartIse Result: " + mIse.startEvaluating(evaText, null, mEvaluatorListener));
 	}
 	
 	public void StopSpeechRecognizer(String language)
@@ -94,6 +109,74 @@ public class HciCloudExampleActivity extends UnityPlayerActivity  {
 		mAsr.stopListening();
 		Log.i(TAG, "StopSpeechRecognizer");
 	}
+	
+	// 评测监听接口
+	private EvaluatorListener mEvaluatorListener = new EvaluatorListener() {
+		
+		@Override
+		public void onResult(EvaluatorResult result, boolean isLast) {
+			Log.d(TAG, "evaluator result :" + isLast);
+
+			if (isLast) {
+				StringBuilder builder = new StringBuilder();
+				builder.append(result.getResultString());
+				mLastResult = builder.toString();
+				
+				ShowTip("评测结束");
+				// 解析最终结果
+				if (!TextUtils.isEmpty(mLastResult)) {
+					XmlResultParser resultParser = new XmlResultParser();
+					Result ret = resultParser.parse(mLastResult);
+					if (null != ret) {
+						StringBuilder sb = new StringBuilder();
+						sb.append(ret.content);
+						sb.append(",");
+						sb.append(ret.total_score);
+						UnityPlayer.UnitySendMessage("UI Root", "ReceiveIse", sb.toString());
+					} else {
+						ShowTip("结析结果为空");
+					}
+				}
+			}
+		}
+
+		@Override
+		public void onError(SpeechError error) {
+			if(error != null) {	
+				ShowTip("error:"+ error.getErrorCode() + "," + error.getErrorDescription());
+			} else {
+				Log.d(TAG, "evaluator over");
+			}
+		}
+
+		@Override
+		public void onBeginOfSpeech() {
+			// 此回调表示：sdk内部录音机已经准备好了，用户可以开始语音输入
+			ShowTip("开始说话");
+		}
+
+		@Override
+		public void onEndOfSpeech() {
+			// 此回调表示：检测到了语音的尾端点，已经进入识别过程，不再接受语音输入
+			ShowTip("结束说话");
+		}
+
+		@Override
+		public void onVolumeChanged(int volume, byte[] data) {
+			ShowTip("当前正在说话，音量大小：" + volume);
+			Log.d(TAG, "返回音频数据："+data.length);
+		}
+
+		@Override
+		public void onEvent(int eventType, int arg1, int arg2, Bundle obj) {
+			// 以下代码用于获取与云端的会话id，当业务出错时将会话id提供给技术支持人员，可用于查询会话日志，定位出错原因
+			//	if (SpeechEvent.EVENT_SESSION_ID == eventType) {
+			//		String sid = obj.getString(SpeechEvent.KEY_EVENT_SESSION_ID);
+			//		Log.d(TAG, "session id =" + sid);
+			//	}
+		}
+		
+	};
 	
 	/**
      * 识别监听器。
@@ -166,7 +249,7 @@ public class HciCloudExampleActivity extends UnityPlayerActivity  {
 		for (String key : mIatResults.keySet()) {
 			resultBuffer.append(mIatResults.get(key));
 		}
-		UnityPlayer.UnitySendMessage("SpeechRecognizer","ReceiveSpeechRecognizer",resultBuffer.toString());
+		UnityPlayer.UnitySendMessage("UI Root","ReceiveSpeechRecognizer",resultBuffer.toString());
 	}
 	
 	public void StartHWR(String traceData,String capKey)

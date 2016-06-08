@@ -14,6 +14,8 @@ public class Zoo : MonoBehaviour
 	UILabel[] animalNames = new UILabel[4];
 	UIButton[] animalNameBtn = new UIButton[4];
 	UIButton speaker, voice;
+	UITexture voiceUITexture;
+	Texture[] voiceTexture = new Texture[3];
 
 	void Awake ()
 	{
@@ -32,6 +34,12 @@ public class Zoo : MonoBehaviour
 
 		speaker = transform.FindChild ("Speaker").GetComponent<UIButton> ();
 		voice = transform.FindChild ("Voice").GetComponent<UIButton> ();
+		voiceUITexture = transform.FindChild ("Voice").GetComponent<UITexture> ();
+
+		for (int i = 1; i <= voiceTexture.Length; i++)
+		{
+			voiceTexture [i - 1] = (Texture)Resources.Load ("Texture/Voice" + i);
+		}
 	}
 
 	void Start ()
@@ -49,7 +57,7 @@ public class Zoo : MonoBehaviour
 		{
 			animalTextures [i].gameObject.SetActive (false);
 			textureLabels [i].gameObject.SetActive (false);
-			animalNames [i].gameObject.SetActive (false);
+			animalNameBtn [i].gameObject.SetActive (false);
 
 			animalTextures [i].mainTexture = null;
 			textureLabels [i].text = "";
@@ -58,7 +66,9 @@ public class Zoo : MonoBehaviour
 		animalTextures [0].transform.localPosition = new Vector3 (-535, 313, 0);
 
 		speaker.gameObject.SetActive (false);
+		speaker.normalSprite = "yuyin1";
 		voice.gameObject.SetActive (false);
+		voiceUITexture.mainTexture = voiceTexture [0];
 	}
 
 #region 看图识字
@@ -79,16 +89,16 @@ public class Zoo : MonoBehaviour
 
 		animalTextures [0].gameObject.SetActive (true);
 		animalTextures [0].transform.localPosition = new Vector3 (0, 313, 0);
-		animalTextures [0].mainTexture = AssetData.AssetDataDic [OnePictureAnswerID].Image;
+		animalTextures [0].mainTexture = AssetData.GetImageByID (OnePictureAnswerID);
 
 		textureLabels [0].gameObject.SetActive (jn ["DisplayText"].AsBool);
-		textureLabels [0].text = isEnglish ? AssetData.AssetDataDic [OnePictureAnswerID].ChineseName : AssetData.AssetDataDic [OnePictureAnswerID].EnglishName;
+		textureLabels [0].text = AssetData.GetNameByID (OnePictureAnswerID, !isEnglish);
 
-		while (true)
+		while (animalTextures [0].gameObject.activeInHierarchy)
 		{
-			for (int i = 0; i < AssetData.AssetDataDic [OnePictureAnswerID].AnimationImages.Count; i++)
+			for (int i = 0; i < AssetData.GetAnimationImageByID(OnePictureAnswerID).Count; i++)
 			{
-				animalTextures [0].mainTexture = AssetData.AssetDataDic [OnePictureAnswerID].AnimationImages [i];
+				animalTextures [0].mainTexture = AssetData.GetAnimationImageByID (OnePictureAnswerID) [i];
 				yield return new WaitForSeconds (0.5f);
 			}
 			//yield return new WaitForSeconds (1);
@@ -103,19 +113,12 @@ public class Zoo : MonoBehaviour
 		for (int i = 0; i < animalNames.Length; i++)
 		{
 			string characterID = characters [i] ["CharacterID"].Value;
-			if (AssetData.AssetDataDic != null && AssetData.AssetDataDic.ContainsKey (characterID))
+			animalNameBtn [i].gameObject.SetActive (true);
+			animalNames [i].text = AssetData.GetNameByID (characterID, isEnglish);
+			EventDelegate.Set (animalNameBtn [i].onClick, delegate
 			{
-				animalNames [i].gameObject.SetActive (true);
-				animalNames [i].text = isEnglish ? AssetData.AssetDataDic [characterID].EnglishName : AssetData.AssetDataDic [characterID].ChineseName;
-				EventDelegate.Set (animalNameBtn [i].onClick, delegate
-				{
-					ClickAnimalNames (characterID, isEnglish);
-				});
-			}
-			else
-			{
-				Debug.LogError (string.Format ("AssetData.AssetDataDic is null or not contains key! characterID:{0}", characterID));
-			}
+				ClickAnimalNames (characterID, isEnglish);
+			});
 		}
 	}
 
@@ -130,18 +133,71 @@ public class Zoo : MonoBehaviour
 #endregion
 
 #region 听音识字
-	IEnumerator ShowSpeaker ()
+	void ShowSpeaker ()
 	{
+		var jn = jsonNode ["Questions"] [questionIndex];
+		int choiceID = jn ["Choice"].AsInt;
+		string characterID = jn ["Characters"] [choiceID] ["CharacterID"].Value;
+		bool isEnglish = jn ["IsEnglish"].AsBool;
+		var sr = voice.GetComponent<SpeechRecognizer> ();
+		sr.capKeyIndex = isEnglish ? 1 : 0;
+		sr.answer = AssetData.GetNameByID (characterID, isEnglish);
+
 		speaker.gameObject.SetActive (true);
-		while (true)
+		EventDelegate.Set (speaker.onClick, delegate
+		{
+			speaker.isEnabled = false;
+			StartCoroutine (SpeakerAnim ());
+			SoundPlay.Instance.Play (characterID, isEnglish, () =>
+			{
+				speaker.isEnabled = true;
+				speaker.gameObject.SetActive (false);
+				ShowVoice ();
+			});
+		});
+	}
+
+	IEnumerator SpeakerAnim ()
+	{
+		while (speaker.gameObject.activeInHierarchy)
 		{
 			for (int i = 1; i < 4; i++)
 			{
-				speaker.normalSprite = 
+				speaker.normalSprite = "yuyin" + i;
 				yield return new WaitForSeconds (0.5f);
 			}
 			//yield return new WaitForSeconds (1);
 		}
+	}
+
+	void ShowVoice ()
+	{
+		voice.gameObject.SetActive (true);
+		EventDelegate.Set (voice.onClick, delegate
+		{
+			voice.isEnabled = false;
+			StartCoroutine (VoiceAnim ());
+		});
+	}
+
+	IEnumerator VoiceAnim ()
+	{
+		while (voice.gameObject.activeInHierarchy)
+		{
+			for (int i = 0; i < voiceTexture.Length; i++)
+			{
+				voiceUITexture.mainTexture = voiceTexture [i];
+				yield return new WaitForSeconds (0.5f);
+			}
+			//yield return new WaitForSeconds (1);
+		}
+	}
+
+	void ReceiveIse (string result)
+	{
+		string[] str = result.Split (',');
+		textureLabels [0].text = result;
+		voice.gameObject.SetActive (false);
 	}
 #endregion
 
@@ -197,7 +253,7 @@ public class Zoo : MonoBehaviour
 				break;
 			case "1":
 				StartCoroutine (ShowOnePicture ());
-				StartCoroutine (ShowSpeaker ());
+				ShowSpeaker ();
 				break;
 			case "2":
 				LinkPictures ();

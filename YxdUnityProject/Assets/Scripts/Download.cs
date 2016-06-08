@@ -56,6 +56,7 @@ public class Download : MonoBehaviour
 		StringBuilder localPath = new StringBuilder ();
 		StringBuilder urlPath = new StringBuilder ();
 		StringBuilder animationFolderPath = new StringBuilder ();
+		StringBuilder localFileName = new StringBuilder();
 		isDownLoadFail = false;
 
 		//计算资源总数
@@ -118,8 +119,8 @@ public class Download : MonoBehaviour
 				}
 				if (j == 0)
 				{
-					//assetNameAndTypeDic.Add (jn ["ChineseVoice"].Value, ASSET_TYPE.ChineseVoice);
-					//assetNameAndTypeDic.Add (jn ["EnglishVoice"].Value, ASSET_TYPE.EnglishVoice);
+					assetNameAndTypeDic.Add (jn ["ChineseVoice"].Value, ASSET_TYPE.ChineseVoice);
+					assetNameAndTypeDic.Add (jn ["EnglishVoice"].Value, ASSET_TYPE.EnglishVoice);
 				}
 				else if (j == 1)
 				{
@@ -143,9 +144,17 @@ public class Download : MonoBehaviour
 					urlPath.Append (WWWProvider.RedirectURL);
 					urlPath.Append ("/");
 					urlPath.Append (item.Key);
-					localPath.Append (urlPath.ToString ().GetHashCode ());
 
-					yield return StartCoroutine (DownLoadAsset (id, item, localPath.ToString (), urlPath.ToString ()));
+					localFileName.Remove (0, localFileName.Length);
+					localFileName.Append(localPath);
+					localFileName.Append(urlPath.ToString ().GetHashCode ());
+
+					if(item.Value == ASSET_TYPE.ChineseVoice || item.Value == ASSET_TYPE.EnglishVoice)
+					{
+						localFileName.Append(".mp3");
+					}
+
+					yield return StartCoroutine (DownLoadAsset (id, item, localFileName.ToString (), urlPath.ToString ()));
 				}
 			}
 		}
@@ -204,6 +213,6 @@ public class Download : MonoBehaviour
 		AssetData.Add (ID, ItemAssetNameAndType.Value, www);
 
 		uiSliderValue += 1.0f / assetNum;
-		uiSlider.value = Mathf.Clamp (uiSliderValue, 0.1f, uiSliderValue);
+		uiSlider.value = Mathf.Clamp (uiSliderValue, 0.01f, uiSliderValue);
 	}
 }

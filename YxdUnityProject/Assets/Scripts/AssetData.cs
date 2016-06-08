@@ -75,4 +75,56 @@ public class AssetData
 			AssetDataDic.Add (ID, ad);
 		}
 	}
+
+	public static string GetNameByID (string CharacterID, bool IsEnglish)
+	{
+		if (AssetDataDic != null && AssetDataDic.ContainsKey (CharacterID))
+		{
+			return IsEnglish ? AssetDataDic [CharacterID].EnglishName : AssetDataDic [CharacterID].ChineseName;
+		}
+		else
+		{
+			Debug.LogError (string.Format ("GetNameByID AssetDataDic is null or not key! CharacterID:{0}", CharacterID));
+			return null;
+		}
+	}
+
+	public static AudioClip GetVoiceByID (string CharacterID, bool IsEnglish)
+	{
+		if (AssetDataDic != null && AssetDataDic.ContainsKey (CharacterID))
+		{
+			return IsEnglish ? AssetDataDic [CharacterID].EnglishVoice : AssetDataDic [CharacterID].ChineseVoice;
+		}
+		else
+		{
+			Debug.LogError (string.Format ("GetVoiceByID AssetDataDic is null or not key! CharacterID:{0}", CharacterID));
+			return null;
+		}
+	}
+
+	public static Texture GetImageByID (string CharacterID)
+	{
+		if (AssetDataDic != null && AssetDataDic.ContainsKey (CharacterID))
+		{
+			return AssetDataDic [CharacterID].Image;
+		}
+		else
+		{
+			Debug.LogError (string.Format ("GetImageByID AssetDataDic is null or not key! CharacterID:{0}", CharacterID));
+			return null;
+		}
+	}
+
+	public static List<Texture> GetAnimationImageByID (string CharacterID)
+	{
+		if (AssetDataDic != null && AssetDataDic.ContainsKey (CharacterID))
+		{
+			return AssetDataDic [CharacterID].AnimationImages;
+		}
+		else
+		{
+			Debug.LogError (string.Format ("GetAnimationImageByID AssetDataDic is null or not key! CharacterID:{0}", CharacterID));
+			return new List<Texture>();
+		}
+	}
 }

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
 
 public class SoundPlay : MonoBehaviour
 {
@@ -22,18 +23,20 @@ public class SoundPlay : MonoBehaviour
 		}
 	}
 
-	public void Play (string CharacterID, bool IsEnglish)
+	public void Play (string CharacterID, bool IsEnglish, Action CallBack = null)
 	{
-		if (AssetData.AssetDataDic != null && AssetData.AssetDataDic.ContainsKey (CharacterID))
-		{
-			audioSource.clip = IsEnglish ? AssetData.AssetDataDic [CharacterID].EnglishVoice : AssetData.AssetDataDic [CharacterID].ChineseVoice;
-			audioSource.Play ();
-		}
-		else
-		{
-			Debug.LogError (string.Format ("AssetData.AssetDataDic is null or not contains key! CharacterID:{0}", CharacterID));
-		}
+		StartCoroutine (StartPlay (CharacterID, IsEnglish, CallBack));
+	}
 
+	IEnumerator StartPlay (string CharacterID, bool IsEnglish, Action CallBack)
+	{
+		audioSource.clip = AssetData.GetVoiceByID (CharacterID, IsEnglish);
+		audioSource.Play ();
+		yield return new WaitForSeconds (audioSource.clip.length);
+		if (CallBack != null)
+		{
+			CallBack ();
+		}
 	}
 
 	// Use this for initialization
