@@ -366,6 +366,8 @@ public class HciCloudExampleActivity extends UnityPlayerActivity  {
         Log.i(TAG, "hciRelease");
         mAsr.cancel();
         mAsr.destroy();
+        mIse.cancel();
+        mIse.destroy();
         super.onDestroy();
     }
 

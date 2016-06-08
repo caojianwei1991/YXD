@@ -15,7 +15,7 @@ public class SpeechRecognizer : MonoBehaviour
 		{
 			AndroidJavaClass jc = new AndroidJavaClass ("com.unity3d.player.UnityPlayer");
 			AndroidJavaObject jo = jc.GetStatic<AndroidJavaObject> ("currentActivity");
-			jo.Call ("StartIse", recognitionLanguage [capKeyIndex], answer);
+			jo.Call ("StartIse", recognitionLanguage [capKeyIndex], "[word]" + answer);
 		}
 		else
 		{
