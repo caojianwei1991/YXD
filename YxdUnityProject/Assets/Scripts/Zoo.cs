@@ -17,6 +17,12 @@ public class Zoo : MonoBehaviour
 	UITexture voiceUITexture;
 	Texture[] voiceTexture = new Texture[3];
 
+	enum GAME_TYPE : int
+	{
+		SpeechRecognizer = 1,
+		HWR = 2
+	}
+
 	void Awake ()
 	{
 		transform.FindChild ("Back").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => Application.LoadLevel ("SelectScene")));
@@ -72,14 +78,15 @@ public class Zoo : MonoBehaviour
 	}
 
 #region 看图识字
-	string OnePictureAnswerID;
+	string OnePictureAnswerID, OnePictureName;
+	bool OnePictureIsEnglish;
 
 	IEnumerator ShowOnePicture ()
 	{
 		var jn = jsonNode ["Questions"] [questionIndex];
 		int choiceID = jn ["Choice"].AsInt;
 		OnePictureAnswerID = jn ["Characters"] [choiceID] ["CharacterID"].Value;
-		bool isEnglish = jn ["IsEnglish"].AsBool;
+		OnePictureIsEnglish = jn ["IsEnglish"].AsBool;
 
 		if (AssetData.AssetDataDic == null || !AssetData.AssetDataDic.ContainsKey (OnePictureAnswerID))
 		{
@@ -87,12 +94,14 @@ public class Zoo : MonoBehaviour
 			yield break;
 		}
 
+		OnePictureName = AssetData.GetNameByID (OnePictureAnswerID, OnePictureIsEnglish);
+
 		animalTextures [0].gameObject.SetActive (true);
 		animalTextures [0].transform.localPosition = new Vector3 (0, 313, 0);
 		animalTextures [0].mainTexture = AssetData.GetImageByID (OnePictureAnswerID);
 
 		textureLabels [0].gameObject.SetActive (jn ["DisplayText"].AsBool);
-		textureLabels [0].text = AssetData.GetNameByID (OnePictureAnswerID, !isEnglish);
+		textureLabels [0].text = AssetData.GetNameByID (OnePictureAnswerID, !OnePictureIsEnglish);
 
 		while (animalTextures [0].gameObject.activeInHierarchy)
 		{
@@ -135,20 +144,15 @@ public class Zoo : MonoBehaviour
 #region 听音识字
 	void ShowSpeaker ()
 	{
-		var jn = jsonNode ["Questions"] [questionIndex];
-		int choiceID = jn ["Choice"].AsInt;
-		string characterID = jn ["Characters"] [choiceID] ["CharacterID"].Value;
-		bool isEnglish = jn ["IsEnglish"].AsBool;
 		var sr = voice.GetComponent<SpeechRecognizer> ();
-		sr.capKeyIndex = isEnglish ? 1 : 0;
-		sr.answer = AssetData.GetNameByID (characterID, isEnglish);
+		sr.SetLanguageAndAnswer (OnePictureIsEnglish, OnePictureName);
 
 		speaker.gameObject.SetActive (true);
 		EventDelegate.Set (speaker.onClick, delegate
 		{
 			speaker.isEnabled = false;
 			StartCoroutine (SpeakerAnim ());
-			SoundPlay.Instance.Play (characterID, isEnglish, () =>
+			SoundPlay.Instance.Play (OnePictureAnswerID, OnePictureIsEnglish, () =>
 			{
 				speaker.isEnabled = true;
 				speaker.gameObject.SetActive (false);
@@ -196,8 +200,12 @@ public class Zoo : MonoBehaviour
 	void ReceiveIse (string result)
 	{
 		string[] str = result.Split (',');
-		textureLabels [0].text = result;
-		voice.gameObject.SetActive (false);
+		var jc = new JSONClass ();
+		jc.Add ("GameType", ((int)GAME_TYPE.SpeechRecognizer).ToString ());
+		jc.Add ("Text", OnePictureName);
+		jc.Add ("RecogText", str [0]);
+		jc.Add ("RecogScore", str [1]);
+		WWWProvider.Instance.StartWWWCommunication ("GetCorrectAnswer", jc, NextQuestion);
 	}
 #endregion
 
@@ -220,6 +228,11 @@ public class Zoo : MonoBehaviour
 		currentQestionPos = jsonNode ["CurrentQestionPos"].Value;
 		returnQestionNum = jsonNode ["ReturnQestionNum"].AsInt;
 		questionIndex = 1;
+		DataToUI ();
+	}
+
+	void NextQuestion  (bool IsSuccess, string JsonData)
+	{
 		DataToUI ();
 	}
 
@@ -277,6 +290,9 @@ public class Zoo : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
 	{
-	
+		if(Input.GetKeyDown(KeyCode.Space))
+		{
+			ReceiveIse ("goat,1");
+		}
 	}
 }

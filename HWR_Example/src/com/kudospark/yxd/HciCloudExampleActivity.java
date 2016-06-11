@@ -34,13 +34,15 @@ import com.unity3d.player.UnityPlayerActivity;
 
 
 public class HciCloudExampleActivity extends UnityPlayerActivity  {
+	
 	private static final String TAG = "HciCloudExampleActivity";
     private AccountInfo mAccountInfo;
-
     private SpeechEvaluator mIse;
     private SpeechRecognizer mAsr;
  	private Toast mToast;
- 	private String mLastResult;
+ 	private String mLanguage;
+ 	private String mTotalScore;
+ 	private String speechRecognizerResult;
  	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -86,25 +88,43 @@ public class HciCloudExampleActivity extends UnityPlayerActivity  {
 	
 	public void StartIse(String language, String evaText)
 	{
+		mLanguage = language;
 		mIse = SpeechEvaluator.createEvaluator(HciCloudExampleActivity.this, null);
-		mIse.setParameter(SpeechConstant.LANGUAGE, language);
+		mIse.setParameter(SpeechConstant.LANGUAGE, mLanguage);
 		mIse.setParameter(SpeechConstant.ISE_CATEGORY, "read_word");
 		mIse.setParameter(SpeechConstant.TEXT_ENCODING, "utf-8");
-		//mIse.setParameter(SpeechConstant.VAD_BOS, vad_bos);
-		//mIse.setParameter(SpeechConstant.VAD_EOS, vad_eos);
-		//mIse.setParameter(SpeechConstant.KEY_SPEECH_TIMEOUT, speech_timeout);
-		//mIse.setParameter(SpeechConstant.RESULT_LEVEL, result_level);
+		mIse.setParameter(SpeechConstant.ISE_AUDIO_PATH, Environment.getExternalStorageDirectory()+"/IseCache/ise.wav");
+		mIse.setParameter(SpeechConstant.AUDIO_FORMAT,"wav");
+//		mIse.setParameter(SpeechConstant.VAD_BOS, vad_bos);
+//		mIse.setParameter(SpeechConstant.VAD_EOS, vad_eos);
+//		mIse.setParameter(SpeechConstant.KEY_SPEECH_TIMEOUT, speech_timeout);
+//		mIse.setParameter(SpeechConstant.RESULT_LEVEL, result_level);
 		
-//		mAsr = SpeechRecognizer.createRecognizer(this, null);
-//		mAsr.setParameter(SpeechConstant.DOMAIN, "iat"); 
-//		mAsr.setParameter(SpeechConstant.LANGUAGE, language);
-//		mAsr.setParameter(SpeechConstant.ACCENT, "mandarin"); 
-//		mAsr.setParameter(SpeechConstant.SAMPLE_RATE, "16000"); 
-//		Log.i(TAG, "StartSpeechRecognizer Result: " + mAsr.startListening(mRecoListener));
 		Log.i(TAG, "StartIse Result: " + mIse.startEvaluating(evaText, null, mEvaluatorListener));
 	}
 	
-	public void StopSpeechRecognizer(String language)
+	public void StopIse()
+	{
+		mIse.stopEvaluating();
+		Log.i(TAG, "StopIse");
+	}
+	
+	void StartSpeechRecognizer()
+	{
+		speechRecognizerResult = "";
+		mAsr = SpeechRecognizer.createRecognizer(HciCloudExampleActivity.this, null);
+		mAsr.setParameter(SpeechConstant.DOMAIN, "iat"); 
+		mAsr.setParameter(SpeechConstant.LANGUAGE, mLanguage);
+		mAsr.setParameter(SpeechConstant.ACCENT, "mandarin"); 
+		mAsr.setParameter(SpeechConstant.SAMPLE_RATE, "16000"); 
+		// 设置标点符号,设置为"0"返回结果无标点,设置为"1"返回结果有标点
+		mAsr.setParameter(SpeechConstant.ASR_PTT, "0");
+		mAsr.setParameter(SpeechConstant.AUDIO_SOURCE, "-2");
+		mAsr.setParameter(SpeechConstant.ASR_SOURCE_PATH, Environment.getExternalStorageDirectory()+"/IseCache/ise.wav");
+		Log.i(TAG, "StartSpeechRecognizer Result: " + mAsr.startListening(mRecoListener));
+	}
+	
+	public void StopSpeechRecognizer()
 	{
 		mAsr.stopListening();
 		Log.i(TAG, "StopSpeechRecognizer");
@@ -118,21 +138,20 @@ public class HciCloudExampleActivity extends UnityPlayerActivity  {
 			Log.d(TAG, "evaluator result :" + isLast);
 
 			if (isLast) {
-				StringBuilder builder = new StringBuilder();
-				builder.append(result.getResultString());
-				mLastResult = builder.toString();
-				
+				String mLastResult = result.getResultString();
 				ShowTip("评测结束");
 				// 解析最终结果
 				if (!TextUtils.isEmpty(mLastResult)) {
 					XmlResultParser resultParser = new XmlResultParser();
 					Result ret = resultParser.parse(mLastResult);
 					if (null != ret) {
+						mTotalScore = String.valueOf(ret.total_score);
 						StringBuilder sb = new StringBuilder();
 						sb.append(ret.content);
 						sb.append(",");
-						sb.append(ret.total_score);
+						sb.append(mTotalScore);
 						UnityPlayer.UnitySendMessage("UI Root", "ReceiveIse", sb.toString());
+						//StartSpeechRecognizer();
 					} else {
 						ShowTip("结析结果为空");
 					}
@@ -249,7 +268,12 @@ public class HciCloudExampleActivity extends UnityPlayerActivity  {
 		for (String key : mIatResults.keySet()) {
 			resultBuffer.append(mIatResults.get(key));
 		}
-		UnityPlayer.UnitySendMessage("UI Root","ReceiveSpeechRecognizer",resultBuffer.toString());
+		speechRecognizerResult += resultBuffer.toString();
+		StringBuilder sb = new StringBuilder();
+		sb.append(mTotalScore);
+		sb.append(",");
+		sb.append(speechRecognizerResult);
+		UnityPlayer.UnitySendMessage("UI Root","ReceiveSpeechRecognizer",sb.toString());
 	}
 	
 	public void StartHWR(String traceData,String capKey)
