@@ -13,9 +13,11 @@ public class Zoo : MonoBehaviour
 	UILabel[] textureLabels = new UILabel[4];
 	UILabel[] animalNames = new UILabel[4];
 	UIButton[] animalNameBtn = new UIButton[4];
-	UIButton speaker, voice;
+	UIButton speaker, voice, mHWR;
 	UITexture voiceUITexture;
 	Texture[] voiceTexture = new Texture[3];
+	UILabel mHWRLabel;
+	GameObject tablet;
 
 	enum GAME_TYPE : int
 	{
@@ -46,6 +48,10 @@ public class Zoo : MonoBehaviour
 		{
 			voiceTexture [i - 1] = (Texture)Resources.Load ("Texture/Voice" + i);
 		}
+
+		mHWR = transform.FindChild ("HWR").GetComponent<UIButton> ();
+		mHWRLabel = transform.FindChild ("HWR/Label").GetComponent<UILabel> ();
+		tablet = transform.FindChild ("Tablet").gameObject;
 	}
 
 	void Start ()
@@ -75,6 +81,10 @@ public class Zoo : MonoBehaviour
 		speaker.normalSprite = "yuyin1";
 		voice.gameObject.SetActive (false);
 		voiceUITexture.mainTexture = voiceTexture [0];
+
+		mHWR.gameObject.SetActive (false);
+		mHWRLabel.text = "";
+		tablet.SetActive (false);
 	}
 
 #region 看图识字
@@ -210,7 +220,38 @@ public class Zoo : MonoBehaviour
 #endregion
 
 #region 手写识别
+	string wordHWR;
+
 	void ShowHWR ()
+	{
+		var hwr = tablet.GetComponent<HWR> ();
+		hwr.SetLanguage (OnePictureIsEnglish);
+
+		mHWR.gameObject.SetActive (true);
+		if (false)
+		{
+			mHWRLabel.text = wordHWR = OnePictureName;
+		}
+		else
+		{
+			int len = OnePictureName.Length;
+			int subIndex = Random.Range (0, len);
+			wordHWR = OnePictureName.Substring (subIndex, 1);
+			string temp = OnePictureName.Remove (subIndex, 1);
+			mHWRLabel.text = temp.Insert (subIndex, "（ ）");
+		}
+
+		EventDelegate.Set (mHWR.onClick, delegate
+		{
+			SoundPlay.Instance.Play (OnePictureAnswerID, OnePictureIsEnglish, () =>
+			{
+				mHWR.gameObject.SetActive (false);
+				tablet.SetActive (true);
+			});
+		});
+	}
+
+	void ReceiveHWR (string str)
 	{
 
 	}
@@ -237,7 +278,7 @@ public class Zoo : MonoBehaviour
 		DataToUI ();
 	}
 
-	void NextQuestion  (bool IsSuccess, string JsonData)
+	void NextQuestion (bool IsSuccess, string JsonData)
 	{
 		DataToUI ();
 	}
@@ -275,7 +316,8 @@ public class Zoo : MonoBehaviour
 				ShowSpeaker ();
 				break;
 			case "2":
-				LinkPictures ();
+				StartCoroutine (ShowOnePicture ());
+				ShowHWR ();
 				break;
 			default:
 				break;
@@ -296,7 +338,7 @@ public class Zoo : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
 	{
-		if(Input.GetKeyDown(KeyCode.Space))
+		if (Input.GetKeyDown (KeyCode.Space))
 		{
 			ReceiveIse ("goat,1");
 		}

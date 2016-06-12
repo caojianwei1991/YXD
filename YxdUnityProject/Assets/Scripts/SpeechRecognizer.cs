@@ -5,7 +5,7 @@ using System;
 
 public class SpeechRecognizer : MonoBehaviour
 {
-	bool isEnglish;
+	string language;
 	string answer;
 
 	/// <summary>
@@ -15,8 +15,8 @@ public class SpeechRecognizer : MonoBehaviour
 	/// <param name="Answer">Answer.</param>
 	public void SetLanguageAndAnswer (bool IsEnglish, string Answer)
 	{
-		isEnglish = IsEnglish;
-		answer = Answer;
+		language = IsEnglish ? "en_us" : "zh_cn";
+		answer = "[word]" + Answer;
 	}
 
 	void OnPress (bool pressed)
@@ -25,7 +25,7 @@ public class SpeechRecognizer : MonoBehaviour
 		{
 			AndroidJavaClass jc = new AndroidJavaClass ("com.unity3d.player.UnityPlayer");
 			AndroidJavaObject jo = jc.GetStatic<AndroidJavaObject> ("currentActivity");
-			jo.Call ("StartIse", isEnglish ? "en_us" : "zh_cn", "[word]" + answer);
+			jo.Call ("StartIse", language, answer);
 		}
 		else
 		{

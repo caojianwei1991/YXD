@@ -5,26 +5,52 @@ using System.Text;
 
 public class HWR : MonoBehaviour
 {
-	string[] recognitionLanguage = {"hwr.cloud.freewrite","hwr.cloud.freewrite.english"};
 	int screenH;
+	Texture[] characterTexture = new Texture[2];
+	UITexture character;
+	string language;
+	UIButton OK;
+	Bounds bounds;
 
 	void Awake ()
 	{
 		screenH = Screen.height;
+		OK = transform.FindChild ("OK").GetComponent<UIButton> ();
+		OK.onClick.Add (new EventDelegate (() => StartHWR ()));
+		OK.isEnabled = false;
+		transform.FindChild ("Clear").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => ClearLine ()));
+
+		character = transform.FindChild ("Character").GetComponent<UITexture> ();
+		for (int i = 0; i < characterTexture.Length; i++)
+		{
+			characterTexture [i] = (Texture)Resources.Load ("Texture/Character" + i);
+		}
+
+		bounds = gameObject.collider.bounds;
 	}
 
-	void Start ()
+	void OnEnable ()
 	{
-
+		StartCoroutine (StartCharacterAnim ());
 	}
-	
-	// Update is called once per frame
-	void Update ()
+
+	IEnumerator StartCharacterAnim ()
 	{
-	
+		while (character.gameObject.activeInHierarchy)
+		{
+			for (int i = 0; i < characterTexture.Length; i++)
+			{
+				character.mainTexture = characterTexture [i];
+				yield return new WaitForSeconds (0.5f);
+			}
+			//yield return new WaitForSeconds (1);
+		}
 	}
 
-	int capKeyIndex;
+	public void SetLanguage (bool IsEnglish)
+	{
+		language = IsEnglish ? "hwr.cloud.freewrite.english" : "hwr.cloud.freewrite";
+	}
 
 	public void StartHWR ()
 	{
@@ -33,20 +59,22 @@ public class HWR : MonoBehaviour
 		Debug.Log ("traceDataStr=" + traceDataStr.ToString ());
 		AndroidJavaClass jc = new AndroidJavaClass ("com.unity3d.player.UnityPlayer");
 		AndroidJavaObject jo = jc.GetStatic<AndroidJavaObject> ("currentActivity");
-		jo.Call ("StartHWR", traceDataStr.ToString (), recognitionLanguage [capKeyIndex]);
-		if (capKeyIndex == 0)
-		{
-			capKeyIndex = 1;
-		}
-		else
-		{
-			capKeyIndex = 0;
-		}
+		jo.Call ("StartHWR", traceDataStr.ToString (), language);
+		gameObject.SetActive (false);
+		OK.isEnabled = false;
 	}
 
-	void ReceiveHWR (string str)
+	void ClearLine ()
 	{
-		transform.FindChild ("Label").GetComponent<UILabel> ().text = str;
+		lineList.Clear ();
+		traceDataStr.Remove (0, traceDataStr.Length);
+		traceList.Clear ();
+		for (int i = 0; i < lineRendererList.Count; i++)
+		{
+			Destroy (lineRendererList [i].gameObject);
+		}
+		lineRendererList.Clear ();
+		OK.isEnabled = false;
 	}
 
 	List<Vector2> traceList = new List<Vector2> ();
@@ -58,7 +86,7 @@ public class HWR : MonoBehaviour
 	{
 		if (pressed)
 		{
-			lineRendererList.Add (NGUITools.AddChild (transform.parent.gameObject, (GameObject)Resources.Load ("line")).GetComponent<LineRenderer> ());
+			lineRendererList.Add (NGUITools.AddChild (transform.parent.gameObject, (GameObject)Resources.Load ("Prefabs/Line")).GetComponent<LineRenderer> ());
 			traceList.Add (InputMouseVector2);
 			lineList.Add (Camera.main.ScreenToWorldPoint (Input.mousePosition));
 		}
@@ -72,10 +100,12 @@ public class HWR : MonoBehaviour
 	void OnDrag (Vector2 delta)
 	{
 		Vector2 InputMouseV2 = InputMouseVector2;
-		if ((traceList [traceList.Count - 1] - InputMouseV2).sqrMagnitude > 4)
+		Vector3 worldPoint = Camera.main.ScreenToWorldPoint (Input.mousePosition);
+		Ray ray = new Ray (worldPoint, transform.forward);
+		if ((traceList [traceList.Count - 1] - InputMouseV2).sqrMagnitude > 4 && bounds.IntersectRay (ray))
 		{
 			traceList.Add (InputMouseV2);
-			lineList.Add (Camera.main.ScreenToWorldPoint (Input.mousePosition));
+			lineList.Add (worldPoint);
 			int lineListNum = lineList.Count;
 			int lineRendererListNum = lineRendererList.Count;
 			lineRendererList [lineRendererListNum - 1].SetVertexCount (lineListNum);
@@ -83,6 +113,7 @@ public class HWR : MonoBehaviour
 			{
 				lineRendererList [lineRendererListNum - 1].SetPosition (i, new Vector3 (lineList [i].x, lineList [i].y, 5));
 			}
+			OK.isEnabled = true;
 		}
 	}
 
