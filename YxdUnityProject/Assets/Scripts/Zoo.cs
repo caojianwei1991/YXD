@@ -209,6 +209,12 @@ public class Zoo : MonoBehaviour
 	}
 #endregion
 
+#region 手写识别
+	void ShowHWR ()
+	{
+
+	}
+#endregion
 
 	void GetQuizQuestions ()
 	{
