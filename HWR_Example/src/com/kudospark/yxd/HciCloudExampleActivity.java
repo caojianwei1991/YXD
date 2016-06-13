@@ -145,7 +145,7 @@ public class HciCloudExampleActivity extends UnityPlayerActivity  {
 					XmlResultParser resultParser = new XmlResultParser();
 					Result ret = resultParser.parse(mLastResult);
 					if (null != ret) {
-						mTotalScore = String.valueOf(ret.total_score);
+						mTotalScore = String.valueOf(ret.total_score * 20);
 						StringBuilder sb = new StringBuilder();
 						sb.append(ret.content);
 						sb.append(",");
@@ -276,7 +276,7 @@ public class HciCloudExampleActivity extends UnityPlayerActivity  {
 		UnityPlayer.UnitySendMessage("UI Root","ReceiveSpeechRecognizer",sb.toString());
 	}
 	
-	public void StartHWR(String traceData,String capKey)
+	public void StartHWR(String traceData, String capKey)
 	{
 		String strs[] = traceData.split(",");
 		short trace[] = new short[strs.length];
@@ -288,7 +288,7 @@ public class HciCloudExampleActivity extends UnityPlayerActivity  {
 		}
 		Log.i(TAG, "StartHWR.traceData=" + s);
 		Log.i(TAG, "StartHWR.capKey=" + capKey);
-		HciCloudFuncHelper.Func(this,capKey,trace);
+		HciCloudFuncHelper.Func(this, capKey, trace);
 	}
     
     
@@ -388,10 +388,16 @@ public class HciCloudExampleActivity extends UnityPlayerActivity  {
         // 释放HciCloudSys，当其他能力全部释放完毕后，才能调用HciCloudSys的释放方法
         HciCloudSys.hciRelease();
         Log.i(TAG, "hciRelease");
-        mAsr.cancel();
-        mAsr.destroy();
-        mIse.cancel();
-        mIse.destroy();
+        if(mAsr != null)
+        {
+        	mAsr.cancel();
+            mAsr.destroy();
+        }
+        if(mIse != null)
+        {
+	        mIse.cancel();
+	        mIse.destroy();
+        }
         super.onDestroy();
     }
 

@@ -26,16 +26,19 @@ public class HciCloudFuncHelper extends HciCloudHelper{
      * @param recogResult
      */
     private static void showRecogResultResult(HwrRecogResult recogResult) {
-//        String strResult = "";
-//        if (recogResult != null) {
-//            ArrayList<HwrRecogResultItem> recogItemList = recogResult
-//                    .getResultItemList();
-//            for (int index = 0; index < recogItemList.size(); index++) {
-//                String strTmp = recogItemList.get(index).getResult();
-//                strResult = strResult.concat(strTmp);
-//            }
-//        }
-        UnityPlayer.UnitySendMessage("HWR","ReceiveHWR",recogResult.getResultItemList().get(0).getResult());
+        String strResult = "";
+        if (recogResult != null) {
+            ArrayList<HwrRecogResultItem> recogItemList = recogResult.getResultItemList();
+            for (int index = 0; index < recogItemList.size(); index++) {
+                String strTmp = recogItemList.get(index).getResult();
+                strResult = strResult.concat(strTmp);
+                if(index != recogItemList.size() - 1)
+                {
+                	strResult = strResult.concat(",");
+                }
+            }
+        }
+        UnityPlayer.UnitySendMessage("UI Root", "ReceiveHWR", strResult);
         //ShowMessage(strResult);
     }
     

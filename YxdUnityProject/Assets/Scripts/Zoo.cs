@@ -4,11 +4,11 @@ using SimpleJSON;
 
 public class Zoo : MonoBehaviour
 {
-	string currentQestionPos = "-1";
+	string currentQestionPos = "0";//"-1";
 	string questionNumber = "50";
-	string questionOrder = "0";
+	string questionOrder = "-1";//"0";
 	JSONNode jsonNode = new JSONNode ();
-	int questionIndex, returnQestionNum;
+	int questionIndex = 1, returnQestionNum;
 	UITexture[] animalTextures = new UITexture[4];
 	UILabel[] textureLabels = new UILabel[4];
 	UILabel[] animalNames = new UILabel[4];
@@ -56,9 +56,6 @@ public class Zoo : MonoBehaviour
 
 	void Start ()
 	{
-//		LocalStorage.StudentID = "stu1";
-//		LocalStorage.SceneID = "0";
-//		LocalStorage.Language = "0";
 		InitUI ();
 		GetQuizQuestions ();
 	}
@@ -74,56 +71,84 @@ public class Zoo : MonoBehaviour
 			animalTextures [i].mainTexture = null;
 			textureLabels [i].text = "";
 			animalNames [i].text = "";
+			animalNameBtn [i].onClick.Clear();
 		}
 		animalTextures [0].transform.localPosition = new Vector3 (-535, 313, 0);
 
 		speaker.gameObject.SetActive (false);
 		speaker.normalSprite = "yuyin1";
+		speaker.onClick.Clear();
+
 		voice.gameObject.SetActive (false);
 		voiceUITexture.mainTexture = voiceTexture [0];
+		voice.onClick.Clear();
 
 		mHWR.gameObject.SetActive (false);
 		mHWRLabel.text = "";
+		mHWR.onClick.Clear();
+
 		tablet.SetActive (false);
 	}
-
-#region 看图识字
+	
 	string OnePictureAnswerID, OnePictureName;
 	bool OnePictureIsEnglish;
 
-	IEnumerator ShowOnePicture ()
+	void ShowPictures (int Num)
 	{
 		var jn = jsonNode ["Questions"] [questionIndex];
-		int choiceID = jn ["Choice"].AsInt;
+		int choiceID = jn ["Choice"].AsInt - 1;
 		OnePictureAnswerID = jn ["Characters"] [choiceID] ["CharacterID"].Value;
 		OnePictureIsEnglish = jn ["IsEnglish"].AsBool;
 
 		if (AssetData.AssetDataDic == null || !AssetData.AssetDataDic.ContainsKey (OnePictureAnswerID))
 		{
 			Debug.LogError ("AssetData.AssetDataDic is null or not contains key!");
-			yield break;
+			return;
 		}
 
 		OnePictureName = AssetData.GetNameByID (OnePictureAnswerID, OnePictureIsEnglish);
 
-		animalTextures [0].gameObject.SetActive (true);
-		animalTextures [0].transform.localPosition = new Vector3 (0, 313, 0);
-		animalTextures [0].mainTexture = AssetData.GetImageByID (OnePictureAnswerID);
-
-		textureLabels [0].gameObject.SetActive (jn ["DisplayText"].AsBool);
-		textureLabels [0].text = AssetData.GetNameByID (OnePictureAnswerID, !OnePictureIsEnglish);
-
-		while (animalTextures [0].gameObject.activeInHierarchy)
+		for (int i = 0; i < Num; i++)
 		{
-			for (int i = 0; i < AssetData.GetAnimationImageByID(OnePictureAnswerID).Count; i++)
+			animalTextures [i].gameObject.SetActive (true);
+			textureLabels [i].gameObject.SetActive (jn ["DisplayText"].AsBool);
+			string ID = jn ["Characters"] [i] ["CharacterID"].Value;
+			if (Num == 1)
 			{
-				animalTextures [0].mainTexture = AssetData.GetAnimationImageByID (OnePictureAnswerID) [i];
-				yield return new WaitForSeconds (0.5f);
+				ID = OnePictureAnswerID;
+				animalTextures [i].transform.localPosition = new Vector3 (0, 313, 0);
+			}
+			animalTextures [i].mainTexture = AssetData.GetImageByID (ID);
+			textureLabels [i].text = AssetData.GetNameByID (ID, !OnePictureIsEnglish);
+			StartCoroutine (StartUITextureAnimal (animalTextures [i], ID));
+		}
+	}
+
+	IEnumerator StartUITextureAnimal (UITexture uiTexture, string CharacterID, Texture[] textures = null)
+	{
+		while (uiTexture.gameObject.activeInHierarchy)
+		{
+			if (textures == null)
+			{
+				for (int i = 0; i < AssetData.GetAnimationImageByID(CharacterID).Count; i++)
+				{
+					uiTexture.mainTexture = AssetData.GetAnimationImageByID (CharacterID) [i];
+					yield return new WaitForSeconds (0.5f);
+				}
+			}
+			else
+			{
+				for (int i = 0; i < textures.Length; i++)
+				{
+					uiTexture.mainTexture = textures [i];
+					yield return new WaitForSeconds (0.5f);
+				}
 			}
 			//yield return new WaitForSeconds (1);
 		}
 	}
 
+#region 看图识字
 	void ShowAnimalNames ()
 	{
 		var characters = jsonNode ["Questions"] [questionIndex] ["Characters"];
@@ -190,21 +215,8 @@ public class Zoo : MonoBehaviour
 		EventDelegate.Set (voice.onClick, delegate
 		{
 			voice.isEnabled = false;
-			StartCoroutine (VoiceAnim ());
+			StartCoroutine (StartUITextureAnimal (voiceUITexture, "", voiceTexture));
 		});
-	}
-
-	IEnumerator VoiceAnim ()
-	{
-		while (voice.gameObject.activeInHierarchy)
-		{
-			for (int i = 0; i < voiceTexture.Length; i++)
-			{
-				voiceUITexture.mainTexture = voiceTexture [i];
-				yield return new WaitForSeconds (0.5f);
-			}
-			//yield return new WaitForSeconds (1);
-		}
 	}
 
 	void ReceiveIse (string result)
@@ -228,9 +240,9 @@ public class Zoo : MonoBehaviour
 		hwr.SetLanguage (OnePictureIsEnglish);
 
 		mHWR.gameObject.SetActive (true);
-		if (false)
+		if (OnePictureIsEnglish)
 		{
-			mHWRLabel.text = wordHWR = OnePictureName;
+			wordHWR = OnePictureName;
 		}
 		else
 		{
@@ -251,9 +263,31 @@ public class Zoo : MonoBehaviour
 		});
 	}
 
-	void ReceiveHWR (string str)
+	void ReceiveHWR (string result)
 	{
-
+		string[] str = result.Split (',');
+		int RecogScore = 0;
+		string RecogText = wordHWR;
+		if (result.Contains (wordHWR))
+		{
+			for (int i = 0; i < str.Length; i++)
+			{
+				if (str [i].Contains (wordHWR))
+				{
+					RecogScore = (str.Length - i) * 10;
+				}
+			}
+		}
+		else
+		{
+			RecogText = str [0];
+		}
+		var jc = new JSONClass ();
+		jc.Add ("GameType", ((int)GAME_TYPE.HWR).ToString ());
+		jc.Add ("Text", wordHWR);
+		jc.Add ("RecogText", RecogText);
+		jc.Add ("RecogScore", RecogScore.ToString ());
+		WWWProvider.Instance.StartWWWCommunication ("GetCorrectAnswer", jc, NextQuestion);
 	}
 #endregion
 
@@ -274,7 +308,6 @@ public class Zoo : MonoBehaviour
 		jsonNode = JSONNode.Parse (JsonData);
 		currentQestionPos = jsonNode ["CurrentQestionPos"].Value;
 		returnQestionNum = jsonNode ["ReturnQestionNum"].AsInt;
-		questionIndex = 1;
 		DataToUI ();
 	}
 
@@ -307,16 +340,16 @@ public class Zoo : MonoBehaviour
 	{
 		switch (jsonNode ["Questions"] [questionIndex] ["GameType"].Value)
 		{
-			case "0":
-				StartCoroutine (ShowOnePicture ());
+			case "1":
+				ShowPictures (1);
 				ShowAnimalNames ();
 				break;
-			case "1":
-				StartCoroutine (ShowOnePicture ());
+			case "2":
+				ShowPictures (1);
 				ShowSpeaker ();
 				break;
-			case "2":
-				StartCoroutine (ShowOnePicture ());
+			case "3":
+				ShowPictures (1);
 				ShowHWR ();
 				break;
 			default:
@@ -324,23 +357,36 @@ public class Zoo : MonoBehaviour
 		}
 	}
 
+#region 听音识字
+
 	void ListenPictures ()
 	{
-		var characters = jsonNode ["Questions"] [questionIndex] ["Characters"];
+		ShowPictures (4);
 		speaker.gameObject.SetActive (true);
+		EventDelegate.Set (speaker.onClick, delegate
+		{
+			StartCoroutine (SpeakerAnim ());
+			SoundPlay.Instance.Play (OnePictureAnswerID, OnePictureIsEnglish);
+		});
 	}
+
+#endregion
+
+#region 连连看
 
 	void LinkPictures ()
 	{
-		var characters = jsonNode ["Questions"] [questionIndex] ["Characters"];
+
 	}
+
+#endregion
 	
 	// Update is called once per frame
 	void Update ()
 	{
 		if (Input.GetKeyDown (KeyCode.Space))
 		{
-			ReceiveIse ("goat,1");
+			NextQuestion (false, "");
 		}
 	}
 }
