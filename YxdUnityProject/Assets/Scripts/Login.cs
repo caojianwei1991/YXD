@@ -6,13 +6,15 @@ using System;
 public class Login : MonoBehaviour
 {
 	UIInput inputSchoolID, inputUserName;
-	UIToggle isSavePSW;
+	UIToggle isSavePSW, cnUIToggle, enUIToggle;
 
 	void Awake ()
 	{
 		inputSchoolID = transform.FindChild ("InputSchoolID").GetComponent<UIInput> ();
 		inputUserName = transform.FindChild ("InputUserName").GetComponent<UIInput> ();
 		isSavePSW = transform.FindChild ("RememberPSW").GetComponent<UIToggle> ();
+		cnUIToggle = transform.FindChild ("Chinese").GetComponent<UIToggle> ();
+		enUIToggle = transform.FindChild ("English").GetComponent<UIToggle> ();
 		transform.FindChild ("Login").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => StartLogin ()));
 		transform.FindChild ("Exit").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => Application.Quit ()));
 		transform.FindChild ("Test").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => Test ()));
@@ -24,6 +26,16 @@ public class Login : MonoBehaviour
 		inputSchoolID.value = PlayerPrefs.GetString ("InputSchoolID", "");
 		inputUserName.value = PlayerPrefs.GetString ("InputUserName", "");
 		isSavePSW.value = PlayerPrefs.GetInt ("IsSavePSW", 1) == 1;
+		if (PlayerPrefs.GetString ("Language", "0") == "0")
+		{
+			cnUIToggle.value = true;
+			enUIToggle.value = false;
+		}
+		else
+		{
+			cnUIToggle.value = false;
+			enUIToggle.value = true;
+		}
 	}
 	
 	void StartLogin ()
@@ -55,7 +67,8 @@ public class Login : MonoBehaviour
 				PlayerPrefs.SetInt ("IsSavePSW", b ? 1 : 0);
 				LocalStorage.SchoolID = inputSchoolID.value;
 				LocalStorage.StudentID = inputUserName.value;
-				LocalStorage.Language = transform.FindChild ("Chinese").GetComponent<UIToggle> ().value ? "0" : "1";
+				LocalStorage.Language = cnUIToggle.value ? "0" : "1";
+				PlayerPrefs.SetString ("Language", LocalStorage.Language);
 				Application.LoadLevel ("Download");
 			}
 			else

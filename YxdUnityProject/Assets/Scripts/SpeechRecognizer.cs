@@ -5,18 +5,11 @@ using System;
 
 public class SpeechRecognizer : MonoBehaviour
 {
-	string language;
-	string answer;
+	MainGameController mgc;
 
-	/// <summary>
-	/// 设置识别语言和内容
-	/// </summary>
-	/// <param name="IsEnglish">"zh_cn"是中文，"en_us"是英文.</param>
-	/// <param name="Answer">Answer.</param>
-	public void SetLanguageAndAnswer (bool IsEnglish, string Answer)
+	void Awake ()
 	{
-		language = IsEnglish ? "en_us" : "zh_cn";
-		answer = "[word]" + Answer;
+		mgc = transform.root.GetComponent<MainGameController> ();
 	}
 
 	void OnPress (bool pressed)
@@ -25,7 +18,7 @@ public class SpeechRecognizer : MonoBehaviour
 		{
 			AndroidJavaClass jc = new AndroidJavaClass ("com.unity3d.player.UnityPlayer");
 			AndroidJavaObject jo = jc.GetStatic<AndroidJavaObject> ("currentActivity");
-			jo.Call ("StartIse", language, answer);
+			jo.Call ("StartIse", mgc.answer.IsEnglish ? "en_us" : "zh_cn", mgc.answer.Name);
 		}
 		else
 		{

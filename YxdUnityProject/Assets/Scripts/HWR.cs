@@ -8,12 +8,13 @@ public class HWR : MonoBehaviour
 	int screenH;
 	Texture[] characterTexture = new Texture[2];
 	UITexture character;
-	string language;
 	UIButton OK;
 	Bounds bounds;
+	MainGameController mgc;
 
 	void Awake ()
 	{
+		mgc = transform.root.GetComponent<MainGameController> ();
 		screenH = Screen.height;
 		OK = transform.FindChild ("OK").GetComponent<UIButton> ();
 		OK.onClick.Add (new EventDelegate (() => StartHWR ()));
@@ -47,11 +48,6 @@ public class HWR : MonoBehaviour
 		}
 	}
 
-	public void SetLanguage (bool IsEnglish)
-	{
-		language = IsEnglish ? "hwr.cloud.freewrite.english" : "hwr.cloud.freewrite";
-	}
-
 	public void StartHWR ()
 	{
 		Debug.Log ("traceList.Count=" + traceList.Count);
@@ -59,6 +55,7 @@ public class HWR : MonoBehaviour
 		Debug.Log ("traceDataStr=" + traceDataStr.ToString ());
 		AndroidJavaClass jc = new AndroidJavaClass ("com.unity3d.player.UnityPlayer");
 		AndroidJavaObject jo = jc.GetStatic<AndroidJavaObject> ("currentActivity");
+		string language = mgc.answer.IsEnglish ? "hwr.cloud.freewrite.english" : "hwr.cloud.freewrite";
 		jo.Call ("StartHWR", traceDataStr.ToString (), language);
 		gameObject.SetActive (false);
 		OK.isEnabled = false;
