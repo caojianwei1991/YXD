@@ -88,8 +88,6 @@ public class MainGameController : MonoBehaviour
 			uiAnswers [i].Init ();
 		}
 
-		uiQuestions [0].transform.localPosition = new Vector3 (-535, 313, 0);
-
 		speaker.gameObject.SetActive (false);
 		speaker.normalSprite = "yuyin1";
 		speaker.onClick.Clear ();
@@ -115,14 +113,16 @@ public class MainGameController : MonoBehaviour
 
 	void ShowPictures (int Num)
 	{
-		for (int i = 0; i < Num; i++)
+		List<int> result = RandomInt (Num);
+
+		for (int i = 0; i < result.Count; i++)
 		{
-			string ID = jsonNode ["Characters"] [i] ["CharacterID"].Value;
+			string ID = jsonNode ["Characters"] [result [i]] ["CharacterID"].Value;
 			if (Num == 1)
 			{
 				int choiceID = jsonNode ["Choice"].AsInt - 1;
 				ID = jsonNode ["Characters"] [choiceID] ["CharacterID"].Value;
-				uiQuestions [0].transform.localPosition = new Vector3 (0, 313, 0);
+				uiQuestions [0].LocalPosition = new Vector3 (0, 313, 0);
 			}
 			uiQuestions [i].SetCharacterID (ID);
 		}
@@ -136,32 +136,54 @@ public class MainGameController : MonoBehaviour
 		answer.Name = AssetData.GetNameByID (characterID, isEnglish);
 		answer.CharacterID = characterID;
 		answer.IsEnglish = isEnglish;
+		answer.mTransform = uiQuestions [0].transform;
 	}
 
-	public void JudgeIsMatch (string CharacterID)
+	public bool JudgeIsMatch (string CharacterID = "")
 	{
-		if (answer.CharacterID == CharacterID)
+		bool isFinish = true;
+		if (GameType == GAME_TYPE.LinkPicture)
 		{
-			DataToUI ();
+			for (int i = 0; i < uiAnswers.Length; i++)
+			{
+				if (uiAnswers [i].gameObject.activeInHierarchy)
+				{
+					isFinish = false;
+					break;
+				}
+			}
 		}
+		else
+		{
+			isFinish = false;
+			if (answer.CharacterID == CharacterID)
+			{
+				isFinish = true;
+			}
+		}
+		return isFinish;
 	}
 
-#region 看图识字
+	public void AllRight()
+	{
+		NextQuestion (false, "");
+	}
 
 	void ShowAnimalNames ()
 	{
 		var characters = jsonNode ["Characters"];
 
-		for (int i = 0; i < uiAnswers.Length; i++)
+		List<int> result = RandomInt (uiAnswers.Length);
+
+		for (int i = 0; i < result.Count; i++)
 		{
-			string characterID = characters [i] ["CharacterID"].Value;
+			string characterID = characters [result [i]] ["CharacterID"].Value;
 			uiAnswers [i].SetCharacterID (characterID);
 		}
 	}
 
-#endregion
-
 #region 听音识字
+
 	void ShowSpeaker ()
 	{
 		speaker.gameObject.SetActive (true);
@@ -215,9 +237,11 @@ public class MainGameController : MonoBehaviour
 		jc.Add ("RecogScore", str [1]);
 		WWWProvider.Instance.StartWWWCommunication ("GetCorrectAnswer", jc, NextQuestion);
 	}
+
 #endregion
 
 #region 手写识别
+
 	string wordHWR;
 
 	void ShowHWR ()
@@ -272,6 +296,46 @@ public class MainGameController : MonoBehaviour
 		jc.Add ("RecogScore", RecogScore.ToString ());
 		WWWProvider.Instance.StartWWWCommunication ("GetCorrectAnswer", jc, NextQuestion);
 	}
+
+#endregion
+
+#region 听音识字
+	
+	void ListenPicture ()
+	{
+		ShowPictures (4);
+		speaker.gameObject.SetActive (true);
+		EventDelegate.Set (speaker.onClick, delegate
+		{
+			speaker.isEnabled = false;
+			IEnumerator ie = SpeakerAnim ();
+			iEnumeratorList.Add (ie);
+			StartCoroutine (ie);
+			SoundPlay.Instance.Play (answer.CharacterID, answer.IsEnglish, () =>
+			{
+				speaker.isEnabled = true;
+				if (ie != null)
+				{
+					StopCoroutine (ie);
+				}
+			});
+		});
+	}
+	
+#endregion
+	
+#region 连连看
+	
+	void LinkPicture ()
+	{
+		ShowPictures (4);
+		ShowAnimalNames ();
+		for (int i = 0; i < uiAnswers.Length; i++)
+		{
+			uiAnswers [i].SetDrag ();
+		}
+	}
+	
 #endregion
 
 	void GetQuizQuestions ()
@@ -294,7 +358,7 @@ public class MainGameController : MonoBehaviour
 		DataToUI ();
 	}
 
-	void NextQuestion (bool IsSuccess, string JsonData)
+	public void NextQuestion (bool IsSuccess = true, string JsonData = "")
 	{
 		DataToUI ();
 	}
@@ -347,52 +411,13 @@ public class MainGameController : MonoBehaviour
 				break;
 		}
 	}
-
-#region 听音识字
-
-	void ListenPicture ()
-	{
-		ShowPictures (4);
-		speaker.gameObject.SetActive (true);
-		EventDelegate.Set (speaker.onClick, delegate
-		{
-			speaker.isEnabled = false;
-			IEnumerator ie = SpeakerAnim ();
-			iEnumeratorList.Add (ie);
-			StartCoroutine (ie);
-			SoundPlay.Instance.Play (answer.CharacterID, answer.IsEnglish, () =>
-			{
-				speaker.isEnabled = true;
-				if (ie != null)
-				{
-					StopCoroutine (ie);
-				}
-			});
-		});
-	}
-
-#endregion
-
-#region 连连看
-
-	void LinkPicture ()
-	{
-		ShowPictures (4);
-		ShowAnimalNames ();
-		for (int i = 0; i < uiAnswers.Length; i++)
-		{
-			uiAnswers [i].SetDrag ();
-		}
-	}
-
-#endregion
 	
 	// Update is called once per frame
 	void Update ()
 	{
 		if (Input.GetKeyDown (KeyCode.Space))
 		{
-			NextQuestion (false, "");
+			AllRight();
 		}
 	}
 
@@ -418,5 +443,19 @@ public class MainGameController : MonoBehaviour
 			}
 			//yield return new WaitForSeconds (1);
 		}
+	}
+
+	List<int> RandomInt (int num)
+	{
+		List<int> result = new List<int> ();
+		while (result.Count < num)
+		{
+			int i = Random.Range (0, num);
+			if (!result.Contains (i))
+			{
+				result.Add (i);
+			}
+		}
+		return result;
 	}
 }

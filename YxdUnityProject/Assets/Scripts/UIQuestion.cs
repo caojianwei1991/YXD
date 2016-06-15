@@ -5,11 +5,24 @@ using System.Collections.Generic;
 
 public class UIQuestion : MonoBehaviour
 {
+	Vector3 defaultPos;
 	UIButton mUIButton;
 	UITexture mUITexture;
 	UILabel mUILabel;
 	MainGameController mgc;
 	IEnumerator mAnimation;
+	Vector3 localPosition;
+	
+	public Vector3 LocalPosition
+	{
+		get{ return localPosition;}
+		set
+		{
+			localPosition = value;
+			transform.localPosition = localPosition;
+		}
+	}
+
 	string name;
 
 	public string Name
@@ -58,6 +71,7 @@ public class UIQuestion : MonoBehaviour
 
 	void Awake ()
 	{
+		defaultPos = transform.localPosition;
 		mUIButton = GetComponent<UIButton> ();
 		mUITexture = GetComponent<UITexture> ();
 		mUILabel = transform.FindChild ("Label").GetComponent<UILabel> ();
@@ -71,10 +85,16 @@ public class UIQuestion : MonoBehaviour
 		MTexture = null;
 		CharacterID = "";
 		mUIButton.onClick.Clear ();
+		LocalPosition = defaultPos;
 		if (mAnimation != null)
 		{
 			StopCoroutine (mAnimation);
 		}
+	}
+
+	public void ActiveNameUI ()
+	{
+		mUILabel.gameObject.SetActive (true);
 	}
 
 	public void SetCharacterID (string Character_ID)
@@ -91,8 +111,13 @@ public class UIQuestion : MonoBehaviour
 		{
 			if (mgc.GameType == GAME_TYPE.ListenPicture)
 			{
-				SoundPlay.Instance.Play (CharacterID, IsEnglish);
-				mgc.JudgeIsMatch (CharacterID);
+				SoundPlay.Instance.Play (CharacterID, IsEnglish, () => 
+				{
+					if (mgc.JudgeIsMatch (CharacterID))
+					{
+						mgc.AllRight ();
+					}
+				});
 			}
 		});
 	}
