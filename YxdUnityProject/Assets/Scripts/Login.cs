@@ -23,6 +23,7 @@ public class Login : MonoBehaviour
 
 	void Start ()
 	{
+		var a = WWWProvider.Instance;
 		inputSchoolID.value = PlayerPrefs.GetString ("InputSchoolID", "");
 		inputUserName.value = PlayerPrefs.GetString ("InputUserName", "");
 		isSavePSW.value = PlayerPrefs.GetInt ("IsSavePSW", 1) == 1;
@@ -42,7 +43,7 @@ public class Login : MonoBehaviour
 	{
 		if (inputSchoolID.value.Length < 1 || inputUserName.value.Length < 1)
 		{
-			Alert.ShowNoInput ();
+			Alert.Show ("你没有输入学校或用户\n名信息，是否返回输入");
 			return;
 		}
 		var jc = new JSONClass ();

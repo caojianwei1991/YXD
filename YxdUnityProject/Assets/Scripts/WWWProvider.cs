@@ -32,21 +32,21 @@ public class WWWProvider : MonoBehaviour
 	{
 		if (RedirectURL == "")
 		{
-			try
-			{
-				HttpWebRequest myHttpWebRequest = (HttpWebRequest)HttpWebRequest.Create (DownLoadURL);
-				myHttpWebRequest.Referer = DownLoadURL;
-				myHttpWebRequest.AllowAutoRedirect = false;
-				using (WebResponse response = myHttpWebRequest.GetResponse())
-				{
-					RedirectURL = response.Headers ["Location"];
-				}
-			}
-			catch (Exception e)
-			{
-				RedirectURL = "http://52.221.227.248";
-				Debug.LogError (string.Format ("StartWWWCommunication.GetRedirect Fail! Exception:{0}", e.Message));
-			}
+//			try
+//			{
+//				HttpWebRequest myHttpWebRequest = (HttpWebRequest)HttpWebRequest.Create (DownLoadURL);
+//				myHttpWebRequest.Referer = DownLoadURL;
+//				myHttpWebRequest.AllowAutoRedirect = false;
+//				using (WebResponse response = myHttpWebRequest.GetResponse())
+//				{
+//					RedirectURL = response.Headers ["Location"];
+//				}
+//			}
+//			catch (Exception e)
+//			{
+			RedirectURL = "http://52.221.227.248";
+			//Debug.LogError (string.Format ("StartWWWCommunication.GetRedirect Fail! Exception:{0}", e.Message));
+			//}
 		}
 		if (MethodName == "GetServerURL")
 		{
@@ -78,6 +78,14 @@ public class WWWProvider : MonoBehaviour
 				URL = jn ["URL"].Value + "&method=";
 			}
 			OnSuccess (true, www.text);
+		}
+	}
+
+	void Update ()
+	{
+		if (Input.GetKeyDown (KeyCode.Escape))
+		{
+			Alert.Show ("是否要退出游戏？", () => Application.Quit (), () => {});
 		}
 	}
 }
