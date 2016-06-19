@@ -69,6 +69,7 @@ public class Login : MonoBehaviour
 				LocalStorage.SchoolID = inputSchoolID.value;
 				LocalStorage.StudentID = inputUserName.value;
 				LocalStorage.Language = cnUIToggle.value ? "0" : "1";
+				LocalStorage.IsRandomPlay = false;
 				PlayerPrefs.SetString ("Language", LocalStorage.Language);
 				Application.LoadLevel ("Download");
 			}
@@ -81,11 +82,20 @@ public class Login : MonoBehaviour
 
 	void Test ()
 	{
-
+		StartLogin ();
 	}
 
 	void RandomPlay ()
 	{
+		LocalStorage.IsRandomPlay = true;
+		if (inputSchoolID.value.Length < 1 || inputUserName.value.Length < 1)
+		{
+			Alert.ShowInputInfo ((UserName, Email) =>
+			{
+
+			});
+		}
+
 		if (Application.internetReachability != NetworkReachability.NotReachable)
 		{
 

@@ -7,4 +7,5 @@ public class LocalStorage
 	public static string StudentID { get; set; }
 	public static string SceneID { get; set; }
 	public static string Language { get; set; }
+	public static bool IsRandomPlay { get; set; }
 }

@@ -15,7 +15,8 @@ public enum GAME_TYPE : int
 
 public class MainGameController : MonoBehaviour
 {
-	string currentQuestionPos = "0";//"-1";
+	int totalQuestionSize;
+	int currentQuestionPos = 0;//-1;
 	string questionNumber = "50";
 	string questionOrder = "-1";//"0";
 	int returnQuestionNum;
@@ -73,7 +74,7 @@ public class MainGameController : MonoBehaviour
 	void Start ()
 	{
 		InitUI ();
-		GetQuizQuestions ();
+		GetQuestions ();
 	}
 
 	void InitUI ()
@@ -164,7 +165,7 @@ public class MainGameController : MonoBehaviour
 		return isFinish;
 	}
 
-	public void AllRight()
+	public void AllRight ()
 	{
 		NextQuestion (false, "");
 	}
@@ -338,34 +339,38 @@ public class MainGameController : MonoBehaviour
 	
 #endregion
 
-	void GetQuizQuestions ()
+	void GetQuestions ()
 	{
+		string gameName = "GetRandomQuestions";
 		var jc = new JSONClass ();
 		jc.Add ("StudentID", LocalStorage.StudentID);
 		jc.Add ("SceneID", LocalStorage.SceneID);
-		jc.Add ("QuestionPos", currentQuestionPos);
 		jc.Add ("QuestionNumber", questionNumber);
-		jc.Add ("QuestionOrder", questionOrder);
+		if (!LocalStorage.IsRandomPlay)
+		{
+			jc.Add ("QuestionPos", currentQuestionPos.ToString ());
+			jc.Add ("QuestionOrder", questionOrder);
+			gameName = "GetQuizQuestions";
+		}
 		jc.Add ("Language", LocalStorage.Language);
-		WWWProvider.Instance.StartWWWCommunication ("GetQuizQuestions", jc, DealQuizQuestionsData);
+		WWWProvider.Instance.StartWWWCommunication (gameName, jc, DealQuestionsData);
 	}
 
-	void DealQuizQuestionsData (bool IsSuccess, string JsonData)
+	void DealQuestionsData (bool IsSuccess, string JsonData)
 	{
 		allQuestions = JSONNode.Parse (JsonData);
-		currentQuestionPos = allQuestions ["CurrentQestionPos"].Value;
 		returnQuestionNum = allQuestions ["ReturnQestionNum"].AsInt;
-		DataToUI ();
-	}
-
-	public void NextQuestion (bool IsSuccess = true, string JsonData = "")
-	{
+		if (!LocalStorage.IsRandomPlay)
+		{
+			currentQuestionPos = allQuestions ["CurrentQestionPos"].AsInt;
+			totalQuestionSize = allQuestions ["TotalQuestionSize"].AsInt;
+		}
+		questionIndex = 0;
 		DataToUI ();
 	}
 
 	void DataToUI ()
 	{
-		InitUI ();
 		jsonNode = allQuestions ["Questions"] [questionIndex];
 		switch (jsonNode ["GameID"].Value)
 		{
@@ -411,13 +416,42 @@ public class MainGameController : MonoBehaviour
 				break;
 		}
 	}
+
+	public void NextQuestion (bool IsSuccess = true, string JsonData = "")
+	{
+		InitUI ();
+		if (questionIndex >= returnQuestionNum)
+		{
+			if (LocalStorage.IsRandomPlay)
+			{
+				FinishQuestion ();
+			}
+			else if (currentQuestionPos >= totalQuestionSize - 1)
+			{
+				FinishQuestion ();
+			}
+			else
+			{
+				GetQuestions ();
+			}
+		}
+		else
+		{
+			DataToUI ();
+		}
+	}
+
+	void FinishQuestion ()
+	{
+
+	}
 	
 	// Update is called once per frame
 	void Update ()
 	{
 		if (Input.GetKeyDown (KeyCode.Space))
 		{
-			AllRight();
+			AllRight ();
 		}
 	}
 

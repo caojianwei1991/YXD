@@ -45,4 +45,49 @@ public class Alert : MonoBehaviour
 			}
 		});
 	}
+
+	public static void ShowAbout (string text)
+	{
+		if (mTransform != null)
+		{
+			Destroy (mTransform.gameObject);
+		}
+		UIRoot uiRoot = GameObject.FindObjectOfType<UIRoot> ();
+		mTransform = NGUITools.AddChild (uiRoot.gameObject, (GameObject)Resources.Load ("Prefabs/About")).transform;
+		mTransform.FindChild ("Texture/Label").GetComponent<UILabel> ().text = text;
+		EventDelegate.Set (mTransform.FindChild ("Texture/Close").GetComponent<UIButton> ().onClick, delegate
+		{
+			if (mTransform != null)
+			{
+				Destroy (mTransform.gameObject);
+			}
+		});
+	}
+
+	public static void ShowInputInfo (Action<string, string> ok)
+	{
+		if (mTransform != null)
+		{
+			Destroy (mTransform.gameObject);
+		}
+		UIRoot uiRoot = GameObject.FindObjectOfType<UIRoot> ();
+		mTransform = NGUITools.AddChild (uiRoot.gameObject, (GameObject)Resources.Load ("Prefabs/InputInfo")).transform;
+		UIInput inputUserName = mTransform.FindChild ("Texture/InputUserName").GetComponent<UIInput> ();
+		UIInput inputEmail = mTransform.FindChild ("Texture/InputEmail").GetComponent<UIInput> ();
+		EventDelegate.Set (mTransform.FindChild ("Texture/Yes").GetComponent<UIButton> ().onClick, delegate
+		{
+			ok.Invoke (inputUserName.value, inputEmail.value);
+			if (mTransform != null)
+			{
+				Destroy (mTransform.gameObject);
+			}
+		});
+		EventDelegate.Set (mTransform.FindChild ("Texture/No").GetComponent<UIButton> ().onClick, delegate
+		{
+			if (mTransform != null)
+			{
+				Destroy (mTransform.gameObject);
+			}
+		});
+	}
 }

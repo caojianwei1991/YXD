@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using SimpleJSON;
 
 public class SelectScene : MonoBehaviour
 {
@@ -9,7 +10,7 @@ public class SelectScene : MonoBehaviour
 	{
 		redHeartLabel = transform.FindChild ("RedHeart/Label").GetComponent<UILabel> ();
 		redHeartLabel.transform.parent.GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => {}));
-		transform.FindChild ("About").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => {}));
+		transform.FindChild ("About").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => RequestAboutContent ()));
 		transform.FindChild ("Back").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => Application.LoadLevel ("Login")));
 		transform.FindChild ("Zoo").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
 		{
@@ -22,6 +23,19 @@ public class SelectScene : MonoBehaviour
 			Application.LoadLevel ("Orchard");
 		}));
 	}
+
+	void RequestAboutContent ()
+	{
+		var jc = new JSONClass ();
+		jc.Add ("SchoolID", LocalStorage.SchoolID);
+		jc.Add ("APPStatus", "0");
+		WWWProvider.Instance.StartWWWCommunication ("GetAboutText", jc, (x, y) =>
+		{
+			var jn = JSONNode.Parse (y);
+			Alert.ShowAbout (jn ["aboutText"].Value);
+		});
+	}
+
 	// Use this for initialization
 	void Start ()
 	{
