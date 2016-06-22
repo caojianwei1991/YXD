@@ -15,6 +15,7 @@ public enum GAME_TYPE : int
 
 public class MainGameController : MonoBehaviour
 {
+	int RandomQuestionNum = 10;
 	int totalQuestionSize;
 	int currentQuestionPos = 0;//-1;
 	string questionNumber = "50";
@@ -341,19 +342,53 @@ public class MainGameController : MonoBehaviour
 
 	void GetQuestions ()
 	{
-		string gameName = "GetRandomQuestions";
-		var jc = new JSONClass ();
-		jc.Add ("StudentID", LocalStorage.StudentID);
-		jc.Add ("SceneID", LocalStorage.SceneID);
-		jc.Add ("QuestionNumber", questionNumber);
-		if (!LocalStorage.IsRandomPlay)
+		if (LocalStorage.IsRandomPlay)
 		{
-			jc.Add ("QuestionPos", currentQuestionPos.ToString ());
-			jc.Add ("QuestionOrder", questionOrder);
-			gameName = "GetQuizQuestions";
+			if (LocalStorage.StudentID == "")
+			{
+				LocalRandomQuestions();
+			}
+			else
+			{
+				ServerRandomQuestions ();
+			}
 		}
-		jc.Add ("Language", LocalStorage.Language);
-		WWWProvider.Instance.StartWWWCommunication (gameName, jc, DealQuestionsData);
+		else
+		{
+			ServerRandomQuestions ();
+		}
+	}
+
+	void LocalRandomQuestions()
+	{
+		var jc = new JSONClass ();
+		jc.Add ("ReturnQestionNum", RandomQuestionNum.ToString());
+		jc.Add ("SceneID", LocalStorage.SceneID);
+		jc.Add ("Questions", questionNumber);
+	}
+	
+	void ServerRandomQuestions()
+	{
+		string gameName = "GetRandomQuestions";
+		if (Application.internetReachability != NetworkReachability.NotReachable)
+		{
+			var jc = new JSONClass ();
+			jc.Add ("StudentID", LocalStorage.StudentID);
+			jc.Add ("SceneID", LocalStorage.SceneID);
+			jc.Add ("QuestionNumber", questionNumber);
+			if (!LocalStorage.IsRandomPlay)
+			{
+				jc.Add ("QuestionPos", currentQuestionPos.ToString ());
+				jc.Add ("QuestionOrder", questionOrder);
+				gameName = "GetQuizQuestions";
+			}
+			jc.Add ("Language", LocalStorage.Language);
+			WWWProvider.Instance.StartWWWCommunication (gameName, jc, DealQuestionsData);
+		}
+		else
+		{
+			LocalRandomQuestions ();
+		}
 	}
 
 	void DealQuestionsData (bool IsSuccess, string JsonData)
@@ -492,4 +527,5 @@ public class MainGameController : MonoBehaviour
 		}
 		return result;
 	}
+
 }

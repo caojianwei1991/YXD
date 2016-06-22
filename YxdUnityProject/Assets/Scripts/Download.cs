@@ -13,6 +13,7 @@ public class Download : MonoBehaviour
 	readonly string timeFormat = "yyyy-MM-dd HH:mm:ss";
 	readonly string minUpdateTime = "1970-01-01 00:00:00";
 	readonly string description = "正在下载资源：{0}...";
+	string assetList, localAssetList;
 	UILabel descriptionLabel;
 	float uiSliderValue, assetNum;
 	JSONNode jsonNode = new JSONNode ();
@@ -21,6 +22,8 @@ public class Download : MonoBehaviour
 
 	void Awake ()
 	{
+		localAssetList = Application.streamingAssetsPath + "/assetList";
+		assetList = DirectoryTool.persistentDataPath + "/assetList";
 		cachePath [0] = DirectoryTool.persistentDataPath + "/AudioCache/";
 		cachePath [1] = DirectoryTool.persistentDataPath + "/ImageCache/";
 		cachePath [2] = DirectoryTool.persistentDataPath + "/AnimationFolderCache/";
@@ -31,23 +34,86 @@ public class Download : MonoBehaviour
 
 	void Start ()
 	{
-		var jc = new JSONClass ();
-		jc.Add ("UpdateTime", lastUpdateTime.ToString (timeFormat));
-		jc.Add ("SchoolID", "kudospark");
-		WWWProvider.Instance.StartWWWCommunication ("UpdateCharactersInfo", jc, DownLoadCharactersInfo);
+		if (LocalStorage.IsRandomPlay)
+		{
+			if (LocalStorage.StudentID == "")
+			{
+				GetLocalAsset ();
+			}
+			else
+			{
+				GetServerAsset ();
+			}
+		}
+		else
+		{
+			GetServerAsset ();
+		}
+	}
+
+	void GetLocalAsset ()
+	{
+		try
+		{
+			jsonNode = JSONNode.LoadFromCompressedFile (assetList);
+		}
+		catch (Exception e)
+		{
+			Debug.LogError (string.Format ("JSONNode.LoadFromCompressedFile Fail! assetList={0},Exception={1}", assetList, e.Message));
+			cachePath [0] = Application.streamingAssetsPath + "/AudioCache/";
+			cachePath [1] = Application.streamingAssetsPath + "/ImageCache/";
+			cachePath [2] = Application.streamingAssetsPath + "/AnimationFolderCache/";
+			jsonNode = JSONNode.LoadFromCompressedFile (localAssetList);
+		}
+		StartCoroutine (DealDownLoadData ());
+	}
+
+	void GetServerAsset ()
+	{
+		if (Application.internetReachability != NetworkReachability.NotReachable)
+		{
+			var jc = new JSONClass ();
+			jc.Add ("UpdateTime", lastUpdateTime.ToString (timeFormat));
+			jc.Add ("SchoolID", LocalStorage.SchoolID);
+			WWWProvider.Instance.StartWWWCommunication ("UpdateCharactersInfo", jc, DownLoadCharactersInfo);
+		}
+		else
+		{
+			GetLocalAsset ();
+		}
 	}
 
 	void DownLoadCharactersInfo (bool IsSuccess, string JsonData)
 	{
 		var jn = JSONNode.Parse (JsonData);
 		isUpdateNeeded = jn ["UpdateNeeded"].Value == "1";
-		var jc = new JSONClass ();
-		jc.Add ("UpdateTime", minUpdateTime);
-		WWWProvider.Instance.StartWWWCommunication ("DownLoadCharactersInfo", jc, (x , y) =>
+		if (isUpdateNeeded)
 		{
-			jsonNode = JSONNode.Parse (y);
-			StartCoroutine (DealDownLoadData ());
-		});
+			var jc = new JSONClass ();
+			jc.Add ("UpdateTime", minUpdateTime);
+			WWWProvider.Instance.StartWWWCommunication ("DownLoadCharactersInfo", jc, (x , y) =>
+			{
+				try
+				{
+					var jsonClass = new JSONClass ();
+					jsonClass.Add ("CurrentDownloadURL", WWWProvider.RedirectURL);
+					jsonClass.Add ("ArrayData", "ZhangYi");
+					string str = jsonClass.ToString ();
+					str = str.Replace ("\"ZhangYi\"", y);
+					jsonNode = JSONNode.Parse (str);
+					jsonNode.SaveToCompressedFile (assetList);
+				}
+				catch (Exception e)
+				{
+					Debug.LogError (string.Format ("File.WriteAllBytes Fail! assetList={0},Exception={1}", assetList, e.Message)); 
+				}
+				StartCoroutine (DealDownLoadData ());
+			});
+		}
+		else
+		{
+			GetLocalAsset ();
+		}
 	}
 
 	IEnumerator DealDownLoadData ()
@@ -56,8 +122,10 @@ public class Download : MonoBehaviour
 		StringBuilder localPath = new StringBuilder ();
 		StringBuilder urlPath = new StringBuilder ();
 		StringBuilder animationFolderPath = new StringBuilder ();
-		StringBuilder localFileName = new StringBuilder();
+		StringBuilder localFileName = new StringBuilder ();
 		isDownLoadFail = false;
+		string currentDownloadURL = jsonNode ["CurrentDownloadURL"].Value;
+		jsonNode = jsonNode ["ArrayData"];
 
 		//计算资源总数
 		for (int i = 0; i < jsonNode.Count; i++)
@@ -141,17 +209,17 @@ public class Download : MonoBehaviour
 				foreach (var item in assetNameAndTypeDic)
 				{
 					urlPath.Remove (0, urlPath.Length);
-					urlPath.Append (WWWProvider.RedirectURL);
+					urlPath.Append (currentDownloadURL);
 					urlPath.Append ("/");
 					urlPath.Append (item.Key);
 
 					localFileName.Remove (0, localFileName.Length);
-					localFileName.Append(localPath);
-					localFileName.Append(urlPath.ToString ().GetHashCode ());
+					localFileName.Append (localPath);
+					localFileName.Append (urlPath.ToString ().GetHashCode ());
 
-					if(item.Value == ASSET_TYPE.ChineseVoice || item.Value == ASSET_TYPE.EnglishVoice)
+					if (item.Value == ASSET_TYPE.ChineseVoice || item.Value == ASSET_TYPE.EnglishVoice)
 					{
-						localFileName.Append(".mp3");
+						localFileName.Append (".mp3");
 					}
 
 					yield return StartCoroutine (DownLoadAsset (id, item, localFileName.ToString (), urlPath.ToString ()));
@@ -182,7 +250,6 @@ public class Download : MonoBehaviour
 		{
 			yield break;
 		}
-
 		bool isExists = File.Exists (LocalPath) && !isUpdateNeeded;
 		string path = isExists ? @"file:///" + LocalPath : UrlPath;
 		WWW www = new WWW (path);

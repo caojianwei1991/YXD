@@ -10,7 +10,7 @@ public class WWWProvider : MonoBehaviour
 {
 	readonly string DownLoadURL = "http://ezlearn.kudospark.com/";
 	readonly string GetServerURL = "/app2016/interface.php?schoolid=ezlearn&method=";
-	string URL;
+	string URL = "";
 	public static string RedirectURL = "";
 	static WWWProvider instance;
 

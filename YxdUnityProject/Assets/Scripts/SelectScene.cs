@@ -35,16 +35,9 @@ public class SelectScene : MonoBehaviour
 			Alert.ShowAbout (jn ["aboutText"].Value);
 		});
 	}
-
-	// Use this for initialization
+	
 	void Start ()
 	{
-	
-	}
-	
-	// Update is called once per frame
-	void Update ()
-	{
-	
+		redHeartLabel.text = LocalStorage.Score.ToString();
 	}
 }
