@@ -124,7 +124,9 @@ public class MainGameController : MonoBehaviour
 			{
 				int choiceID = jsonNode ["Choice"].AsInt - 1;
 				ID = jsonNode ["Characters"] [choiceID] ["CharacterID"].Value;
-				uiQuestions [0].LocalPosition = new Vector3 (0, 313, 0);
+				Vector3 v3 = uiQuestions [0].LocalPosition;
+				v3.x = 0;
+				uiQuestions [0].LocalPosition = v3;
 			}
 			uiQuestions [i].SetCharacterID (ID);
 		}
@@ -346,7 +348,7 @@ public class MainGameController : MonoBehaviour
 		{
 			if (LocalStorage.StudentID == "")
 			{
-				LocalRandomQuestions();
+				LocalRandomQuestions ();
 			}
 			else
 			{
@@ -359,15 +361,60 @@ public class MainGameController : MonoBehaviour
 		}
 	}
 
-	void LocalRandomQuestions()
+	void LocalRandomQuestions ()
 	{
 		var jc = new JSONClass ();
-		jc.Add ("ReturnQestionNum", RandomQuestionNum.ToString());
+		jc.Add ("ReturnQestionNum", RandomQuestionNum.ToString ());
 		jc.Add ("SceneID", LocalStorage.SceneID);
-		jc.Add ("Questions", questionNumber);
+
+		for (int i = 0; i < RandomQuestionNum; i++)
+		{
+			List<string> randomQestionIDs = new List<string> ();
+			foreach (var add in AssetData.AssetDataDic)
+			{
+				if (add.Value.SceneID == LocalStorage.SceneID)
+				{
+					randomQestionIDs.Add (add.Key);
+				}
+			}
+			for (int j = 0; j < 4; j++)
+			{
+				int randomID = Random.Range (0, randomQestionIDs.Count);
+				for (int m = 0; m < randomQestionIDs.Count; m++)
+				{
+					if (m == randomID)
+					{
+						int id1 = j == 0 ? -1 : i;
+						int id2 = j == 0 ? -1 : j;
+						jc ["Questions"] [id1] ["Characters"] [id2] ["CharacterID"] = randomQestionIDs [m];
+						randomQestionIDs.RemoveAt (m);
+						break;
+					}
+				}
+			}
+			jc ["Questions"] [i] ["IsEnglish"] = LocalStorage.Language;
+			int gameID = Random.Range (0, 3);
+			switch (gameID)
+			{
+				case 0:
+					jc ["Questions"] [i] ["Choice"] = Random.Range (1, 5).ToString ();
+					jc ["Questions"] [i] ["DisplayText"] = Random.Range (0, 2).ToString ();
+					jc ["Questions"] [i] ["GameType"] = Random.Range (1, 4).ToString ();
+					break;
+				case 1:
+					jc ["Questions"] [i] ["Choice"] = Random.Range (1, 5).ToString ();
+					jc ["Questions"] [i] ["DisplayText"] = Random.Range (0, 2).ToString ();
+					break;
+				default:
+					break;
+			}
+			jc ["Questions"] [i] ["GameID"] = gameID.ToString ();
+		}
+		Debug.LogError (jc.ToString ());
+		DealQuestionsData (true, jc.ToString ());
 	}
 	
-	void ServerRandomQuestions()
+	void ServerRandomQuestions ()
 	{
 		string gameName = "GetRandomQuestions";
 		if (Application.internetReachability != NetworkReachability.NotReachable)

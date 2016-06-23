@@ -29,6 +29,8 @@ public class AssetData
 
 	public static Dictionary<string, AssetData> AssetDataDic{ get; private set; }
 
+	public string SceneID{ get; private set; }
+
 	public AssetData ()
 	{
 		ChineseVoice = null;
@@ -36,6 +38,7 @@ public class AssetData
 		ChineseName = null;
 		EnglishName = null;
 		Image = null;
+		SceneID = null;
 		AnimationImages = new List<Texture> ();
 	}
 
@@ -66,6 +69,7 @@ public class AssetData
 			case ASSET_TYPE.Name:
 				ad.ChineseName = JsonNode ["ChineseName"].Value;
 				ad.EnglishName = JsonNode ["EnglishName"].Value;
+				ad.SceneID = JsonNode ["SceneID"].Value;
 				break;
 			default:
 				break;
@@ -124,7 +128,7 @@ public class AssetData
 		else
 		{
 			Debug.LogError (string.Format ("GetAnimationImageByID AssetDataDic is null or not key! CharacterID:{0}", CharacterID));
-			return new List<Texture>();
+			return new List<Texture> ();
 		}
 	}
 }
