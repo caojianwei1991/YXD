@@ -240,6 +240,7 @@ public class Download : MonoBehaviour
 			uiSlider.value = 1;
 			descriptionLabel.text = "下载完成！";
 			yield return new WaitForSeconds (1);
+			LocalStorage.IsSwitchBG = false;
 			Application.LoadLevel ("SelectScene");
 		}
 	}

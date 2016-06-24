@@ -29,7 +29,8 @@ public class Login : MonoBehaviour
 		inputSchoolID.value = PlayerPrefs.GetString ("InputSchoolID", "");
 		inputUserName.value = PlayerPrefs.GetString ("InputUserName", "");
 		isSavePSW.value = PlayerPrefs.GetInt ("IsSavePSW", 1) == 1;
-		if (PlayerPrefs.GetString ("Language", "0") == "0")
+		LocalStorage.Language = PlayerPrefs.GetString ("Language", "0");
+		if (LocalStorage.Language == "0")
 		{
 			cnUIToggle.value = true;
 			enUIToggle.value = false;
@@ -39,6 +40,7 @@ public class Login : MonoBehaviour
 			cnUIToggle.value = false;
 			enUIToggle.value = true;
 		}
+		SoundPlay.Instance.PlayLocal (1, () => SoundPlay.Instance.PlayBG ());
 	}
 	
 	void StartLogin ()

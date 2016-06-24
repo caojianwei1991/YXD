@@ -48,7 +48,11 @@ public class MainGameController : MonoBehaviour
 		uiAnswers = new UIAnswer[4];
 		answer = new UIAnswer ();
 
-		transform.FindChild ("Back").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => Application.LoadLevel ("SelectScene")));
+		transform.FindChild ("Back").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
+		{
+			LocalStorage.IsSwitchBG = true;
+			Application.LoadLevel ("SelectScene");
+		}));
 		for (int i = 0; i < uiQuestions.Length; i++)
 		{
 			uiQuestions [i] = transform.FindChild ("AnimalTexture" + i).GetComponent<UIQuestion> ();
@@ -76,6 +80,7 @@ public class MainGameController : MonoBehaviour
 	{
 		InitUI ();
 		GetQuestions ();
+		SoundPlay.Instance.PlayBG ();
 	}
 
 	void InitUI ()

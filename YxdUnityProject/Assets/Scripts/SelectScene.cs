@@ -11,14 +11,20 @@ public class SelectScene : MonoBehaviour
 		redHeartLabel = transform.FindChild ("RedHeart/Label").GetComponent<UILabel> ();
 		redHeartLabel.transform.parent.GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => {}));
 		transform.FindChild ("About").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => RequestAboutContent ()));
-		transform.FindChild ("Back").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => Application.LoadLevel ("Login")));
+		transform.FindChild ("Back").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
+		{
+			LocalStorage.IsSwitchBG = false;
+			Application.LoadLevel ("Login");
+		}));
 		transform.FindChild ("Zoo").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
 		{
+			LocalStorage.IsSwitchBG = true;
 			LocalStorage.SceneID = "0";
 			Application.LoadLevel ("Zoo");
 		}));
 		transform.FindChild ("Orchard").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
 		{
+			LocalStorage.IsSwitchBG = true;
 			LocalStorage.SceneID = "1";
 			Application.LoadLevel ("Orchard");
 		}));
@@ -38,6 +44,7 @@ public class SelectScene : MonoBehaviour
 	
 	void Start ()
 	{
-		redHeartLabel.text = LocalStorage.Score.ToString();
+		redHeartLabel.text = LocalStorage.Score.ToString ();
+		SoundPlay.Instance.PlayBG ();
 	}
 }

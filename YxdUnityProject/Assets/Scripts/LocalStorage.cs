@@ -16,4 +16,6 @@ public class LocalStorage
 	public static string Email { get; set; }
 
 	public static int Score { get; set; }
+
+	public static bool IsSwitchBG = true;
 }
