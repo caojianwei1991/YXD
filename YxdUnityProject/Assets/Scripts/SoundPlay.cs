@@ -23,7 +23,7 @@ public class SoundPlay : MonoBehaviour
 				bGAudioSource = go.AddComponent<AudioSource> ();
 				bGAudioSource.playOnAwake = false;
 				bGAudioSource.loop = true;
-				bGAudioSource.volume = 0.5f;
+				bGAudioSource.volume = 0.3f;
 				DontDestroyOnLoad (go);
 			}
 			return instance;
@@ -91,17 +91,17 @@ public class SoundPlay : MonoBehaviour
 		}
 	}
 
-	public void PlayLocal (int GameSoundID, Action CallBack = null)
+	public void PlayLocal (int GameSoundID, bool IsEnglish, Action CallBack = null)
 	{
-		StartCoroutine (StartPlayLocal (GameSoundID, CallBack));
+		StartCoroutine (StartPlayLocal (GameSoundID, IsEnglish, CallBack));
 	}
 
-	IEnumerator StartPlayLocal (int GameSoundID, Action CallBack)
+	IEnumerator StartPlayLocal (int GameSoundID, bool IsEnglish, Action CallBack)
 	{
 		StringBuilder path = new StringBuilder ();
 		path.Append ("Sound/");
 		path.Append (gameSoundPaths [GameSoundID]);
-		path.Append (LocalStorage.Language == "0" ? "/C" : "/E");
+		path.Append (IsEnglish ? "/E" : "/C");
 		gameAudioSource.clip = (AudioClip)Resources.Load (path.ToString ());
 		gameAudioSource.Play ();
 		yield return new WaitForSeconds (gameAudioSource.clip.length);

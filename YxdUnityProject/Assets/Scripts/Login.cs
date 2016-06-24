@@ -40,7 +40,7 @@ public class Login : MonoBehaviour
 			cnUIToggle.value = false;
 			enUIToggle.value = true;
 		}
-		SoundPlay.Instance.PlayLocal (1, () => SoundPlay.Instance.PlayBG ());
+		SoundPlay.Instance.PlayLocal (1, enUIToggle.value, () => SoundPlay.Instance.PlayBG ());
 	}
 	
 	void StartLogin ()

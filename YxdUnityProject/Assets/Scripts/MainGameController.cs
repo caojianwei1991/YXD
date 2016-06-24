@@ -42,6 +42,12 @@ public class MainGameController : MonoBehaviour
 
 	public GAME_TYPE GameType{ get; private set; }
 
+	public int characterSoundID{ get; private set; }
+
+	public UICharacter uiCharacter{ get; private set; }
+
+	public UIFinger uiFinger{ get; private set; }
+
 	void Awake ()
 	{
 		uiQuestions = new UIQuestion[4];
@@ -74,6 +80,10 @@ public class MainGameController : MonoBehaviour
 		mHWR = transform.FindChild ("HWR").GetComponent<UIButton> ();
 		mHWRLabel = transform.FindChild ("HWR/Label").GetComponent<UILabel> ();
 		tablet = transform.FindChild ("Tablet").gameObject;
+
+		uiCharacter = transform.FindChild ("Character").GetComponent<UICharacter> ();
+
+		uiFinger = transform.FindChild ("Finger").GetComponent<UIFinger> ();
 	}
 
 	void Start ()
@@ -116,6 +126,10 @@ public class MainGameController : MonoBehaviour
 				StopCoroutine (iEnumeratorList [i]);
 			}
 		}
+
+		uiCharacter.Init ();
+
+		uiFinger.Init ();
 	}
 
 	void ShowPictures (int Num)
@@ -195,9 +209,11 @@ public class MainGameController : MonoBehaviour
 
 	void ShowSpeaker ()
 	{
+		uiFinger.SetPos (new Vector3 (180, -444, 0));
 		speaker.gameObject.SetActive (true);
 		EventDelegate.Set (speaker.onClick, delegate
 		{
+			uiFinger.Init ();
 			speaker.isEnabled = false;
 			var ie = SpeakerAnim ();
 			iEnumeratorList.Add (ie);
@@ -226,6 +242,8 @@ public class MainGameController : MonoBehaviour
 
 	void ShowVoice ()
 	{
+		uiFinger.Show ();
+		uiFinger.SetPos (new Vector3 (256, -310, 0));
 		voice.gameObject.SetActive (true);
 		EventDelegate.Set (voice.onClick, delegate
 		{
@@ -233,6 +251,7 @@ public class MainGameController : MonoBehaviour
 			var ie = StartUITextureAnimal (voiceUITexture, "", voiceTexture);
 			iEnumeratorList.Add (ie);
 			StartCoroutine (ie);
+			uiFinger.Init ();
 		});
 	}
 
@@ -275,6 +294,7 @@ public class MainGameController : MonoBehaviour
 			{
 				mHWR.gameObject.SetActive (false);
 				tablet.SetActive (true);
+				uiFinger.Init ();
 			});
 		});
 	}
@@ -316,6 +336,7 @@ public class MainGameController : MonoBehaviour
 		speaker.gameObject.SetActive (true);
 		EventDelegate.Set (speaker.onClick, delegate
 		{
+			uiFinger.Init ();
 			speaker.isEnabled = false;
 			IEnumerator ie = SpeakerAnim ();
 			iEnumeratorList.Add (ie);
@@ -477,6 +498,34 @@ public class MainGameController : MonoBehaviour
 			default:
 				break;
 		}
+		switch (GameType)
+		{
+			case GAME_TYPE.ReadPicture:
+				characterSoundID = LocalStorage.SceneID == "0" ? 2 : 3;
+				uiCharacter.Show (false);
+				break;
+			case GAME_TYPE.SpeechRecognizer:
+				characterSoundID = 10;
+				uiCharacter.Show (false);
+				break;
+			case GAME_TYPE.HWR:
+				characterSoundID = 13;
+				uiFinger.SetPos (new Vector3 (356, -456, 0));
+				uiCharacter.Show (false);
+				break;
+			case GAME_TYPE.ListenPicture:
+				characterSoundID = 16;
+				uiFinger.SetPos (new Vector3 (180, -444, 0));
+				uiCharacter.Show (true);
+				break;
+			case GAME_TYPE.LinkPicture:
+				characterSoundID = LocalStorage.SceneID == "0" ? 19 : 20;
+				uiCharacter.Show (false);
+				break;
+			default:
+				break;
+		}
+		uiFinger.Show ();
 		questionIndex++;
 	}
 
@@ -532,7 +581,7 @@ public class MainGameController : MonoBehaviour
 	{
 
 	}
-	
+
 	// Update is called once per frame
 	void Update ()
 	{
