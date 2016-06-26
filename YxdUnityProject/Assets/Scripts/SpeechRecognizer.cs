@@ -12,7 +12,7 @@ public class SpeechRecognizer : MonoBehaviour
 		mgc = transform.root.GetComponent<MainGameController> ();
 	}
 
-	void OnPress (bool pressed)
+	public void OnPress (bool pressed)
 	{
 		if (pressed)
 		{

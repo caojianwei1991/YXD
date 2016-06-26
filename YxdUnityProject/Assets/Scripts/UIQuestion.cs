@@ -90,11 +90,17 @@ public class UIQuestion : MonoBehaviour
 		{
 			StopCoroutine (mAnimation);
 		}
+		mUIButton.isEnabled = true;
 	}
 
 	public void ActiveNameUI ()
 	{
 		mUILabel.gameObject.SetActive (true);
+	}
+
+	public void SetButtonIsEnabled (bool IsEnabled)
+	{
+		mUIButton.isEnabled = IsEnabled;
 	}
 
 	public void SetCharacterID (string Character_ID)
@@ -111,13 +117,8 @@ public class UIQuestion : MonoBehaviour
 		{
 			if (mgc.GameType == GAME_TYPE.ListenPicture)
 			{
-				SoundPlay.Instance.Play (CharacterID, IsEnglish, () => 
-				{
-					if (mgc.JudgeIsMatch (CharacterID))
-					{
-						mgc.AllRight ();
-					}
-				});
+				mgc.SetAllQuestionsBtnIsEnable(false);
+				mgc.JudgeIsMatch (CharacterID);
 			}
 		});
 	}

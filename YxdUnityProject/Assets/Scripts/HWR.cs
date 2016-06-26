@@ -7,7 +7,9 @@ public class HWR : MonoBehaviour
 {
 	int screenH;
 	Texture[] characterTexture = new Texture[2];
-	UITexture character;
+
+	public UITexture character{ get; private set; }
+
 	UIButton OK;
 	Bounds bounds;
 	MainGameController mgc;
@@ -22,6 +24,8 @@ public class HWR : MonoBehaviour
 		transform.FindChild ("Clear").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => ClearLine ()));
 
 		character = transform.FindChild ("Character").GetComponent<UITexture> ();
+
+		character.gameObject.SetActive (false);
 		for (int i = 0; i < characterTexture.Length; i++)
 		{
 			characterTexture [i] = (Texture)Resources.Load ("Texture/Character" + i);
@@ -32,7 +36,7 @@ public class HWR : MonoBehaviour
 
 	void OnEnable ()
 	{
-		StartCoroutine (StartCharacterAnim ());
+		//StartCoroutine (StartCharacterAnim ());
 	}
 
 	IEnumerator StartCharacterAnim ()

@@ -99,6 +99,12 @@ public class UIAnswer : MonoBehaviour
 		{
 			StopCoroutine (mAnimation);
 		}
+		mUIButton.isEnabled = true;
+	}
+
+	public void SetButtonIsEnabled (bool IsEnabled)
+	{
+		mUIButton.isEnabled = IsEnabled;
 	}
 
 	public void SetDrag ()
@@ -118,14 +124,18 @@ public class UIAnswer : MonoBehaviour
 				for (int i = 0; hits != null && i < hits.Length; i++)
 				{
 					UIQuestion uq = hits [i].collider.GetComponent<UIQuestion> ();
-					if (uq != null && uq.CharacterID == CharacterID)
+					if (uq != null)
 					{
-						isMatch = true;
-						uq.ActiveNameUI ();
-						gameObject.SetActive (false);
-						if (mgc.JudgeIsMatch ())
+						if (uq.CharacterID == CharacterID)
 						{
-							mgc.AllRight ();
+							isMatch = true;
+							uq.ActiveNameUI ();
+							gameObject.SetActive (false);
+							mgc.JudgeIsMatch ();
+						}
+						else
+						{
+							SoundPlay.Instance.PlayLocal (Random.Range (21, 23), IsEnglish);
 						}
 						break;
 					}
@@ -137,6 +147,7 @@ public class UIAnswer : MonoBehaviour
 			}
 			else
 			{
+				mgc.uiFinger.Init ();
 				iTween.Stop (gameObject);
 			}
 		}
@@ -151,19 +162,31 @@ public class UIAnswer : MonoBehaviour
 		EventDelegate.Set (mUIButton.onClick, delegate
 		{
 			SoundPlay.Instance.Play (CharacterID, IsEnglish);
-			if (mgc.GameType == GAME_TYPE.ReadPicture && mgc.JudgeIsMatch (CharacterID))
+			mgc.uiFinger.Init();
+			if (mgc.GameType == GAME_TYPE.ReadPicture)
 			{
-				animUITexture.gameObject.SetActive (true);
-				mAnimation = StartAnimation (characterTexture);
-				StartCoroutine (mAnimation);
-				iTween.MoveTo (gameObject, iTween.Hash ("position", mgc.answer.mTransform.localPosition, "islocal", true, "time", 1, "easetype", iTween.EaseType.easeOutBack, "oncomplete", "OnComplete"));
+				mgc.SetAllAnswersBtnIsEnable (false);
+				mgc.uiCharacter.MoveTo (animUITexture.transform.position, () =>
+				{
+					mgc.uiCharacter.ItweenMoveTo (mgc.answer.mTransform.position + new Vector3 (-185, 200, 0) * mgc.answer.mTransform.lossyScale.x);
+					iTween.MoveTo (gameObject, iTween.Hash ("position", mgc.answer.mTransform.localPosition, "islocal", true, "time", 1, "easetype", iTween.EaseType.easeOutBack, "oncomplete", "OnComplete"));
+				});
 			}
 		});
 	}
 
 	void OnComplete ()
 	{
-		mgc.AllRight ();
+		if(!mgc.JudgeIsMatch (CharacterID))
+		{
+			mgc.uiCharacter.Init();
+			iTween.MoveTo (gameObject, iTween.Hash ("position", defaultPos, "islocal", true, "time", 1, "easetype", iTween.EaseType.easeOutBack, "oncomplete", "OnComplete1"));
+		}
+	}
+
+	void OnComplete1()
+	{
+		mgc.SetAllAnswersBtnIsEnable (true);
 	}
 
 	IEnumerator StartAnimation (Texture[] textures)

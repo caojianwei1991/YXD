@@ -32,29 +32,33 @@ public class WWWProvider : MonoBehaviour
 	{
 		if (RedirectURL == "")
 		{
-//			try
-//			{
-//				HttpWebRequest myHttpWebRequest = (HttpWebRequest)HttpWebRequest.Create (DownLoadURL);
-//				myHttpWebRequest.Referer = DownLoadURL;
-//				myHttpWebRequest.AllowAutoRedirect = false;
-//				using (WebResponse response = myHttpWebRequest.GetResponse())
-//				{
-//					RedirectURL = response.Headers ["Location"];
-//				}
-//			}
-//			catch (Exception e)
-//			{
-			RedirectURL = "http://52.221.227.248";
-			//Debug.LogError (string.Format ("StartWWWCommunication.GetRedirect Fail! Exception:{0}", e.Message));
-			//}
+			try
+			{
+				HttpWebRequest myHttpWebRequest = (HttpWebRequest)HttpWebRequest.Create (DownLoadURL);
+				myHttpWebRequest.Referer = DownLoadURL;
+				myHttpWebRequest.AllowAutoRedirect = false;
+				using (WebResponse response = myHttpWebRequest.GetResponse())
+				{
+					RedirectURL = response.Headers ["Location"];
+				}
+			}
+			catch (Exception e)
+			{
+				RedirectURL = "http://52.221.227.248";
+				Debug.LogError (string.Format ("StartWWWCommunication.GetRedirect Fail! Exception:{0}", e.Message));
+			}
 		}
 		if (MethodName == "GetServerURL")
 		{
 			URL = RedirectURL + GetServerURL;
 		}
+		else if (URL == "")
+		{
+			URL = RedirectURL + "/app2016/interface.php?schoolid=kudospark&method=";
+		}
 	}
 
-	public void StartWWWCommunication (string MethodName, JSONClass JsonClass, Action<bool, string> OnSuccess)
+	public void StartWWWCommunication (string MethodName, JSONClass JsonClass, Action<bool, string> OnSuccess = null)
 	{
 		GetRedirectURL (MethodName);
 		StartCoroutine (WWWCommunication (MethodName, JsonClass, OnSuccess));
@@ -66,8 +70,12 @@ public class WWWProvider : MonoBehaviour
 		yield return www;
 		if (www.error != null)
 		{
+			Alert.Show (www.error);
 			Debug.LogError (www.error);
-			OnSuccess (false, www.error);
+			if (OnSuccess != null)
+			{
+				OnSuccess (false, www.error);
+			}
 		}
 		else
 		{
@@ -77,7 +85,10 @@ public class WWWProvider : MonoBehaviour
 				var jn = JSONNode.Parse (www.text);
 				URL = jn ["URL"].Value + "&method=";
 			}
-			OnSuccess (true, www.text);
+			if (OnSuccess != null)
+			{
+				OnSuccess (true, www.text);
+			}
 		}
 	}
 
@@ -85,7 +96,13 @@ public class WWWProvider : MonoBehaviour
 	{
 		if (Input.GetKeyDown (KeyCode.Escape))
 		{
-			Alert.Show ("是否要退出游戏？", () => Application.Quit (), () => {});
+			Exit ();
 		}
+	}
+
+	public void Exit ()
+	{
+		SoundPlay.Instance.PlayLocal (23, LocalStorage.Language == "1");
+		Alert.Show ("是否要退出游戏？", () => Application.Quit (), () => {});
 	}
 }

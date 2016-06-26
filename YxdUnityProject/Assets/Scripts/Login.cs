@@ -7,25 +7,27 @@ public class Login : MonoBehaviour
 {
 	UIInput inputSchoolID, inputUserName;
 	UIToggle isSavePSW, cnUIToggle, enUIToggle;
+	WWWProvider wwwProvider;
 
 	void Awake ()
 	{
+		wwwProvider = WWWProvider.Instance;
 		inputSchoolID = transform.FindChild ("InputSchoolID").GetComponent<UIInput> ();
 		inputUserName = transform.FindChild ("InputUserName").GetComponent<UIInput> ();
 		isSavePSW = transform.FindChild ("RememberPSW").GetComponent<UIToggle> ();
 		cnUIToggle = transform.FindChild ("Chinese").GetComponent<UIToggle> ();
 		enUIToggle = transform.FindChild ("English").GetComponent<UIToggle> ();
 		transform.FindChild ("Login").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => StartLogin ()));
-		transform.FindChild ("Exit").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => Application.Quit ()));
+		transform.FindChild ("Exit").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => wwwProvider.Exit ()));
 		transform.FindChild ("Test").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => Test ()));
 		transform.FindChild ("RandomPlay").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => RandomPlay ()));
 		LocalStorage.StudentID = "";
 		LocalStorage.Score = 0;
+		LocalStorage.IsTest = false;
 	}
 
 	void Start ()
 	{
-		var a = WWWProvider.Instance;
 		inputSchoolID.value = PlayerPrefs.GetString ("InputSchoolID", "");
 		inputUserName.value = PlayerPrefs.GetString ("InputUserName", "");
 		isSavePSW.value = PlayerPrefs.GetInt ("IsSavePSW", 1) == 1;
@@ -91,6 +93,7 @@ public class Login : MonoBehaviour
 
 	void Test ()
 	{
+		LocalStorage.IsTest = true;
 		StartLogin ();
 	}
 
@@ -100,7 +103,7 @@ public class Login : MonoBehaviour
 		{
 			Alert.ShowInputInfo ((UserName, Email) =>
 			{
-				if (UserName.Length > 0)
+				if (UserName.Length > 0 && Email.Length > 0)
 				{
 					UpdateUserID (UserName, Email);
 				}
@@ -149,8 +152,8 @@ public class Login : MonoBehaviour
 	void UpdateUserID (string UserName, string Email)
 	{
 		var jc = new JSONClass ();
-		jc.Add ("UserName", LocalStorage.StudentID);
-		jc.Add ("Email", LocalStorage.Email);
+		jc.Add ("UserName", UserName);
+		jc.Add ("Email", Email);
 		jc.Add ("loginMachnie", SystemInfo.deviceUniqueIdentifier);
 		jc.Add ("currentDateTime", DateTime.Now.ToString ("yyyy-MM-dd HH:mm:ss"));
 		if (Application.internetReachability != NetworkReachability.NotReachable)
@@ -161,6 +164,7 @@ public class Login : MonoBehaviour
 				if (jn ["IsSuccess"].Value == "1")
 				{
 					LocalStorage.StudentID = UserName;
+					LocalStorage.SchoolID = "kudospark";
 					LocalStorage.Email = Email;
 					EnterRandomPlay ();
 				}

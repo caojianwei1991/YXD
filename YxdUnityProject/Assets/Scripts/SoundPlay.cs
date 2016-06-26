@@ -2,12 +2,14 @@
 using System.Collections;
 using System;
 using System.Text;
+using System.Collections.Generic;
 
 public class SoundPlay : MonoBehaviour
 {
 	static SoundPlay instance;
 	static AudioSource gameAudioSource;
 	static AudioSource bGAudioSource;
+	List<IEnumerator> iEnumeratorList = new List<IEnumerator> ();
 	
 	public static SoundPlay Instance
 	{
@@ -23,7 +25,7 @@ public class SoundPlay : MonoBehaviour
 				bGAudioSource = go.AddComponent<AudioSource> ();
 				bGAudioSource.playOnAwake = false;
 				bGAudioSource.loop = true;
-				bGAudioSource.volume = 0.3f;
+				bGAudioSource.volume = 0.1f;
 				DontDestroyOnLoad (go);
 			}
 			return instance;
@@ -67,7 +69,6 @@ public class SoundPlay : MonoBehaviour
 		"Deyan Pavlov - La Marche Des Petits Renards",
 		"Disney - The Ballad Of Davy Crockett",
 		"Hans Zimmer - Mal Mart",
-		"Mr. Scruff - Donkey Ride",
 		"The Chemical Brothers - The Devil is in the details",
 		"Theodore Shapiro - Evil With a Dog Face",
 		"Theodore Shapiro - Two Year Montage",
@@ -77,7 +78,9 @@ public class SoundPlay : MonoBehaviour
 
 	public void Play (string CharacterID, bool IsEnglish, Action CallBack = null)
 	{
-		StartCoroutine (StartPlay (CharacterID, IsEnglish, CallBack));
+		var ie = StartPlay (CharacterID, IsEnglish, CallBack);
+		iEnumeratorList.Add (ie);
+		StartCoroutine (ie);
 	}
 
 	IEnumerator StartPlay (string CharacterID, bool IsEnglish, Action CallBack)
@@ -93,7 +96,9 @@ public class SoundPlay : MonoBehaviour
 
 	public void PlayLocal (int GameSoundID, bool IsEnglish, Action CallBack = null)
 	{
-		StartCoroutine (StartPlayLocal (GameSoundID, IsEnglish, CallBack));
+		var ie = StartPlayLocal (GameSoundID, IsEnglish, CallBack);
+		iEnumeratorList.Add (ie);
+		StartCoroutine (ie);
 	}
 
 	IEnumerator StartPlayLocal (int GameSoundID, bool IsEnglish, Action CallBack)
@@ -131,5 +136,16 @@ public class SoundPlay : MonoBehaviour
 		path.Append (bGSoundPaths [randomID]);
 		bGAudioSource.clip = (AudioClip)Resources.Load (path.ToString ());
 		bGAudioSource.Play ();
+	}
+
+	public void DestroyiEnumeratorList()
+	{
+		for (int i = 0; i < iEnumeratorList.Count; i++)
+		{
+			if (iEnumeratorList [i] != null)
+			{
+				StopCoroutine (iEnumeratorList [i]);
+			}
+		}
 	}
 }

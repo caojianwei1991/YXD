@@ -17,9 +17,9 @@ public class MainGameController : MonoBehaviour
 {
 	int RandomQuestionNum = 10;
 	int totalQuestionSize;
-	int currentQuestionPos = 0;//-1;
+	int currentQuestionPos = -1;
 	string questionNumber = "50";
-	string questionOrder = "-1";//"0";
+	string questionOrder = "0";
 	int returnQuestionNum;
 	UIButton speaker, voice, mHWR;
 	UITexture voiceUITexture;
@@ -27,6 +27,12 @@ public class MainGameController : MonoBehaviour
 	UILabel mHWRLabel;
 	GameObject tablet;
 	List<IEnumerator> iEnumeratorList = new List<IEnumerator> ();
+	int clickNum;
+	bool isRandomQuestion;
+	int startPerAnswerTime;
+	string TotalLogID;
+	System.DateTime startAnswerTime;
+	int TotalQuestions;
 
 	public UIQuestion[] uiQuestions{ get; private set; }
 
@@ -91,6 +97,7 @@ public class MainGameController : MonoBehaviour
 		InitUI ();
 		GetQuestions ();
 		SoundPlay.Instance.PlayBG ();
+		TotalLogID = LocalStorage.StudentID + SystemInfo.deviceUniqueIdentifier + System.DateTime.Now.ToString ("yyyy-MM-dd HH:mm:ss");
 	}
 
 	void InitUI ()
@@ -164,9 +171,11 @@ public class MainGameController : MonoBehaviour
 
 	public bool JudgeIsMatch (string CharacterID = "")
 	{
-		bool isFinish = true;
+		clickNum ++;
+		bool isAllRight = false;
 		if (GameType == GAME_TYPE.LinkPicture)
 		{
+			bool isFinish = true;
 			for (int i = 0; i < uiAnswers.Length; i++)
 			{
 				if (uiAnswers [i].gameObject.activeInHierarchy)
@@ -175,20 +184,56 @@ public class MainGameController : MonoBehaviour
 					break;
 				}
 			}
+			if (isFinish)
+			{
+				uiCharacter.PlayResultSound (Random.Range (4, 7), false, () =>
+				{
+					AllRight ();
+				});
+			}
 		}
 		else
 		{
-			isFinish = false;
 			if (answer.CharacterID == CharacterID)
 			{
-				isFinish = true;
+				isAllRight = true;
+				uiCharacter.PlayResultSound (Random.Range (4, 7), false, () =>
+				{
+					AllRight ();
+				});
+			}
+			else
+			{
+				isAllRight = false;
+				if (GameType == GAME_TYPE.ListenPicture)
+				{
+					uiCharacter.PlayResultSound (Random.Range (7, 9), false, () =>
+					{
+						uiCharacter.PlayResultSound (17, true, () =>
+						{
+							uiCharacter.PlayResultSound (18, false, () =>
+							{
+								SetAllQuestionsBtnIsEnable (true);
+							});
+						});
+					});
+				}
+				else if (GameType == GAME_TYPE.ReadPicture)
+				{
+					uiCharacter.PlayResultSound (9, false, () =>
+					{
+
+					});
+				}
 			}
 		}
-		return isFinish;
+		return isAllRight;
 	}
 
 	public void AllRight ()
 	{
+		TotalQuestions++;
+		SubmitLogs (false);
 		NextQuestion (false, "");
 	}
 
@@ -257,13 +302,32 @@ public class MainGameController : MonoBehaviour
 
 	void ReceiveIse (string result)
 	{
+		clickNum ++;
 		string[] str = result.Split (',');
-		var jc = new JSONClass ();
-		jc.Add ("GameType", ((int)GAME_TYPE.SpeechRecognizer).ToString ());
-		jc.Add ("Text", answer.Name);
-		jc.Add ("RecogText", str [0]);
-		jc.Add ("RecogScore", str [1]);
-		WWWProvider.Instance.StartWWWCommunication ("GetCorrectAnswer", jc, NextQuestion);
+		if (int.Parse (str [1]) > 60)
+		{
+			var jc = new JSONClass ();
+			jc.Add ("GameType", ((int)GAME_TYPE.SpeechRecognizer).ToString ());
+			jc.Add ("Text", answer.Name);
+			jc.Add ("RecogText", str [0]);
+			jc.Add ("RecogScore", str [1]);
+			WWWProvider.Instance.StartWWWCommunication ("GetCorrectAnswer", jc);
+			uiCharacter.PlayResultSound (Random.Range (4, 7), false, () =>
+			{
+				voice.isEnabled = true;
+				AllRight ();
+			});
+		}
+		else
+		{
+			uiCharacter.PlayResultSound (Random.Range (7, 9), false, () =>
+			{
+				uiCharacter.PlayResultSound (12, true, () =>
+				{
+					voice.GetComponent<SpeechRecognizer> ().OnPress (true);
+				});
+			});
+		}
 	}
 
 #endregion
@@ -295,12 +359,14 @@ public class MainGameController : MonoBehaviour
 				mHWR.gameObject.SetActive (false);
 				tablet.SetActive (true);
 				uiFinger.Init ();
+				uiCharacter.MoveTo (tablet.GetComponent<HWR> ().character.transform.position);
 			});
 		});
 	}
 
 	void ReceiveHWR (string result)
 	{
+		clickNum ++;
 		string[] str = result.Split (',');
 		int RecogScore = 0;
 		string RecogText = wordHWR;
@@ -318,12 +384,40 @@ public class MainGameController : MonoBehaviour
 		{
 			RecogText = str [0];
 		}
-		var jc = new JSONClass ();
-		jc.Add ("GameType", ((int)GAME_TYPE.HWR).ToString ());
-		jc.Add ("Text", wordHWR);
-		jc.Add ("RecogText", RecogText);
-		jc.Add ("RecogScore", RecogScore.ToString ());
-		WWWProvider.Instance.StartWWWCommunication ("GetCorrectAnswer", jc, NextQuestion);
+
+		if (wordHWR == RecogText)
+		{
+			var jc = new JSONClass ();
+			jc.Add ("GameType", ((int)GAME_TYPE.HWR).ToString ());
+			jc.Add ("Text", wordHWR);
+			jc.Add ("RecogText", RecogText);
+			jc.Add ("RecogScore", RecogScore.ToString ());
+			WWWProvider.Instance.StartWWWCommunication ("GetCorrectAnswer", jc);
+			uiCharacter.PlayResultSound (Random.Range (4, 7), false, () =>
+			{
+				AllRight ();
+			});
+		}
+		else
+		{
+			uiCharacter.PlayResultSound (Random.Range (7, 9), false, () =>
+			{
+				uiCharacter.PlayResultSound (14, false, () =>
+				{
+					mHWR.gameObject.SetActive (true);
+					string text = "";
+					if (answer.IsEnglish)
+					{
+						text = answer.Name;
+					}
+					else
+					{
+						text = mHWRLabel.text.Replace ("（ ）", "（" + wordHWR + "）");
+					}
+					mHWRLabel.text = text;
+				});
+			});
+		}
 	}
 
 #endregion
@@ -438,6 +532,7 @@ public class MainGameController : MonoBehaviour
 		}
 		Debug.LogError (jc.ToString ());
 		DealQuestionsData (true, jc.ToString ());
+		isRandomQuestion = true;
 	}
 	
 	void ServerRandomQuestions ()
@@ -445,6 +540,7 @@ public class MainGameController : MonoBehaviour
 		string gameName = "GetRandomQuestions";
 		if (Application.internetReachability != NetworkReachability.NotReachable)
 		{
+			isRandomQuestion = true;
 			var jc = new JSONClass ();
 			jc.Add ("StudentID", LocalStorage.StudentID);
 			jc.Add ("SceneID", LocalStorage.SceneID);
@@ -454,6 +550,7 @@ public class MainGameController : MonoBehaviour
 				jc.Add ("QuestionPos", currentQuestionPos.ToString ());
 				jc.Add ("QuestionOrder", questionOrder);
 				gameName = "GetQuizQuestions";
+				isRandomQuestion = false;
 			}
 			jc.Add ("Language", LocalStorage.Language);
 			WWWProvider.Instance.StartWWWCommunication (gameName, jc, DealQuestionsData);
@@ -527,6 +624,9 @@ public class MainGameController : MonoBehaviour
 		}
 		uiFinger.Show ();
 		questionIndex++;
+		startPerAnswerTime = (int)Time.time;
+		clickNum = 0;
+		startAnswerTime = System.DateTime.Now;
 	}
 
 	void ReadPicture ()
@@ -579,7 +679,78 @@ public class MainGameController : MonoBehaviour
 
 	void FinishQuestion ()
 	{
+		Alert.Show ("题已做完，选择是重做一遍，选择否，退到选场！", () => 
+		{
+			InitUI ();
+			GetQuestions ();
+		}, () => 
+		{
+			LocalStorage.IsSwitchBG = true;
+			Application.LoadLevel ("SelectScene");
+		});
+	}
 
+	void SubmitLogs (bool IsTotal)
+	{
+		string submitType = "";
+		var jc = new JSONClass ();
+		if (isRandomQuestion)
+		{
+			submitType = IsTotal ? "SubmitUserTotalLogs" : "SubmitUserLogs";
+			string UserID = LocalStorage.StudentID;
+			if (UserID == "")
+			{
+				UserID = SystemInfo.deviceUniqueIdentifier;
+			}
+			jc.Add ("UserID", UserID);
+		}
+		else
+		{
+			submitType = IsTotal ? "SubmitStudentTotalLogs" : "SubmitStudentLogs";
+			jc.Add ("StudentID", LocalStorage.StudentID);
+			if (!IsTotal)
+			{
+				jc.Add ("QuizID", jsonNode ["QuizID"].Value);
+				jc.Add ("QuizStatus", isRandomQuestion ? "1" : "0");
+			}
+		}
+		if (!IsTotal)
+		{
+			jc.Add ("GameID", jsonNode ["GameID"].Value);
+			jc.Add ("Question", jsonNode.ToString ());
+			jc.Add ("ClickNo", clickNum.ToString ());
+			jc.Add ("SpentTime", ((int)Time.time - startPerAnswerTime).ToString ());
+			bool IsCorrect;
+			if (GameType == GAME_TYPE.LinkPicture)
+			{
+				IsCorrect = clickNum == 4;
+			}
+			else
+			{
+				IsCorrect = clickNum == 1;
+			}
+			if (IsCorrect)
+			{
+				LocalStorage.Score ++;
+			}
+			jc.Add ("IsCorrect", IsCorrect ? "1" : "0");
+		}
+		else
+		{
+			if (!isRandomQuestion)
+			{
+				jc.Add ("StateTime", startAnswerTime.ToString ("yyyy-MM-dd HH:mm:ss"));
+				jc.Add ("EndTime", System.DateTime.Now.ToString ("yyyy-MM-dd HH:mm:ss"));
+			}
+			jc.Add ("SpentTime", (System.DateTime.Now - startAnswerTime).TotalSeconds.ToString ());
+			jc.Add ("TotalQuestions", TotalQuestions.ToString ());
+			jc.Add ("TotalCorrectQuestions", LocalStorage.Score.ToString ());
+		}
+		jc.Add ("SceneID", LocalStorage.SceneID);
+		jc.Add ("SubmitDate", System.DateTime.Now.ToString ("yyyy-MM-dd HH:mm:ss"));
+		jc.Add ("TotalLogID", TotalLogID);
+
+		WWWProvider.Instance.StartWWWCommunication (submitType, jc);
 	}
 
 	// Update is called once per frame
@@ -629,4 +800,28 @@ public class MainGameController : MonoBehaviour
 		return result;
 	}
 
+	public void SetAllQuestionsBtnIsEnable (bool IsEnabled)
+	{
+		for (int i = 0; i < uiQuestions.Length; i++)
+		{
+			uiQuestions [i].SetButtonIsEnabled (IsEnabled);
+		}
+	}
+
+	public void SetAllAnswersBtnIsEnable (bool IsEnabled)
+	{
+		for (int i = 0; i < uiAnswers.Length; i++)
+		{
+			uiAnswers [i].SetButtonIsEnabled (IsEnabled);
+		}
+	}
+
+	void OnDestroy ()
+	{
+		SubmitLogs (true);
+		if (SoundPlay.Instance != null)
+		{
+			SoundPlay.Instance.DestroyiEnumeratorList ();
+		}
+	}
 }
