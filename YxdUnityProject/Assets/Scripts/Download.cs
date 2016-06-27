@@ -12,13 +12,13 @@ public class Download : MonoBehaviour
 	UISlider uiSlider;
 	readonly string timeFormat = "yyyy-MM-dd HH:mm:ss";
 	readonly string minUpdateTime = "1970-01-01 00:00:00";
-	readonly string description = "正在下载资源：{0}...";
+	string description = "正在下载资源：{0}...";
 	string assetList, localAssetList;
 	UILabel descriptionLabel;
 	float uiSliderValue, assetNum;
 	JSONNode jsonNode = new JSONNode ();
 	DateTime lastUpdateTime;
-	bool isUpdateNeeded, isDownLoadFail;
+	bool isUpdateNeeded, isDownLoadFail, isLoadStreamingAssets;
 
 	void Awake ()
 	{
@@ -34,6 +34,8 @@ public class Download : MonoBehaviour
 
 	void Start ()
 	{
+		Screen.sleepTimeout = SleepTimeout.NeverSleep;
+		isLoadStreamingAssets = false;
 		if (LocalStorage.IsRandomPlay)
 		{
 			if (LocalStorage.StudentID == "")
@@ -56,6 +58,7 @@ public class Download : MonoBehaviour
 		try
 		{
 			jsonNode = JSONNode.LoadFromCompressedFile (assetList);
+			StartCoroutine (DealDownLoadData ());
 		}
 		catch (Exception e)
 		{
@@ -63,8 +66,20 @@ public class Download : MonoBehaviour
 			cachePath [0] = Application.streamingAssetsPath + "/AudioCache/";
 			cachePath [1] = Application.streamingAssetsPath + "/ImageCache/";
 			cachePath [2] = Application.streamingAssetsPath + "/AnimationFolderCache/";
-			jsonNode = JSONNode.LoadFromCompressedFile (localAssetList);
+			isLoadStreamingAssets = true;
+			StartCoroutine (ReadLocalAssetList ());
 		}
+	}
+
+	IEnumerator ReadLocalAssetList ()
+	{
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR
+		WWW www = new WWW (@"file:///" + localAssetList);
+#else
+		WWW www = new WWW (localAssetList);
+#endif
+		yield return www;
+		jsonNode = JSONNode.LoadFromCompressedStream (new MemoryStream (www.bytes));
 		StartCoroutine (DealDownLoadData ());
 	}
 
@@ -176,7 +191,20 @@ public class Download : MonoBehaviour
 				localPath.Append ("/");
 				try
 				{
-					if (!Directory.Exists (localPath.ToString ()))
+					bool isCreate = false;
+					if (isLoadStreamingAssets)
+					{
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR
+						isCreate = true;
+#else
+						isCreate = false;
+#endif
+					}
+					else
+					{
+						isCreate = true;
+					}
+					if (isCreate && !Directory.Exists (localPath.ToString ()))
 					{
 						Directory.CreateDirectory (localPath.ToString ());
 					}
@@ -238,7 +266,7 @@ public class Download : MonoBehaviour
 				PlayerPrefs.SetString ("LastUpdateTime", lastUpdateTime.ToString (timeFormat));
 			}
 			uiSlider.value = 1;
-			descriptionLabel.text = "下载完成！";
+			descriptionLabel.text = description.Contains ("加载") ? "资源加载完成！" : "资源下载完成！";
 			yield return new WaitForSeconds (1);
 			LocalStorage.IsSwitchBG = false;
 			Application.LoadLevel ("SelectScene");
@@ -251,8 +279,41 @@ public class Download : MonoBehaviour
 		{
 			yield break;
 		}
-		bool isExists = File.Exists (LocalPath) && !isUpdateNeeded;
-		string path = isExists ? @"file:///" + LocalPath : UrlPath;
+		bool isExists = false;
+		if (isLoadStreamingAssets)
+		{
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR
+			isExists = File.Exists (LocalPath) && !isUpdateNeeded;
+#else
+			isExists = true;
+#endif
+		}
+		else
+		{
+			isExists = File.Exists (LocalPath) && !isUpdateNeeded;
+		}
+		string path = "";
+		if (isExists)
+		{
+			if (isLoadStreamingAssets)
+			{
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR
+				path = @"file:///" +LocalPath;
+#else
+				path = LocalPath;
+#endif
+			}
+			else
+			{
+				path = @"file:///" + LocalPath;
+			}
+			description = "正在加载资源：{0}...";
+		}
+		else
+		{
+			path = UrlPath;
+			description = "正在下载资源：{0}...";
+		}
 		WWW www = new WWW (path);
 		descriptionLabel.text = string.Format (description, ItemAssetNameAndType.Key);
 		yield return www;

@@ -94,6 +94,7 @@ public class MainGameController : MonoBehaviour
 
 	void Start ()
 	{
+		Screen.sleepTimeout = SleepTimeout.NeverSleep;
 		InitUI ();
 		GetQuestions ();
 		SoundPlay.Instance.PlayBG ();
