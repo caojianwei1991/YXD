@@ -34,7 +34,7 @@ public class SelectScene : MonoBehaviour
 	{
 		var jc = new JSONClass ();
 		jc.Add ("SchoolID", LocalStorage.SchoolID);
-		jc.Add ("APPStatus", "0");
+		jc.Add ("APPStatus", LocalStorage.SchoolID == "" ? "1" : "0");
 		WWWProvider.Instance.StartWWWCommunication ("GetAboutText", jc, (x, y) =>
 		{
 			var jn = JSONNode.Parse (y);
