@@ -44,7 +44,7 @@ namespace cn.sharesdk.unity3d
 		//public Instapaper instapaper;
 
 		#if UNITY_ANDROID
-		public FourSquare fourSquare;
+		//public FourSquare fourSquare;
 		#elif UNITY_IPHONE		
 		public Copy copy;
 		public YixinFavorites yixinFavorites;					//易信收藏，仅iOS端支持							[仅支持iOS端]
