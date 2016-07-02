@@ -33,7 +33,6 @@ public class Download : MonoBehaviour
 	void Start ()
 	{
 		Screen.sleepTimeout = SleepTimeout.NeverSleep;
-		isLoadStreamingAssets = false;
 		try
 		{
 			jsonNode = JSONNode.LoadFromCompressedFile (assetList);
@@ -60,15 +59,9 @@ public class Download : MonoBehaviour
 
 	void UpdateCharactersInfo (bool IsUseLocalAsset)
 	{
+		isLoadStreamingAssets = IsUseLocalAsset;
 		if ((LocalStorage.IsRandomPlay && LocalStorage.StudentID == "") || Application.internetReachability == NetworkReachability.NotReachable)
 		{
-			if (IsUseLocalAsset)
-			{
-				cachePath [0] = Application.streamingAssetsPath + "/AudioCache/";
-				cachePath [1] = Application.streamingAssetsPath + "/ImageCache/";
-				cachePath [2] = Application.streamingAssetsPath + "/AnimationFolderCache/";
-				isLoadStreamingAssets = true;
-			}
 			StartCoroutine (DealDownLoadData ());
 		}
 		else
@@ -86,6 +79,7 @@ public class Download : MonoBehaviour
 		isUpdateNeeded = jn ["UpdateNeeded"].Value == "1";
 		if (isUpdateNeeded)
 		{
+			isLoadStreamingAssets = false;
 			var jc = new JSONClass ();
 			jc.Add ("UpdateTime", jsonNode ["LastUpdateTime"].Value);
 			WWWProvider.Instance.StartWWWCommunication ("DownLoadCharactersInfo", jc, (x , y) =>
@@ -158,6 +152,13 @@ public class Download : MonoBehaviour
 		string currentDownloadURL = jsonNode ["CurrentDownloadURL"].Value;
 		assetNum = jsonNode ["AssetNum"].AsFloat;
 		jsonNode = jsonNode ["ArrayData"];
+
+		if (isLoadStreamingAssets)
+		{
+			cachePath [0] = Application.streamingAssetsPath + "/AudioCache/";
+			cachePath [1] = Application.streamingAssetsPath + "/ImageCache/";
+			cachePath [2] = Application.streamingAssetsPath + "/AnimationFolderCache/";
+		}
 
 		//开始下载.....
 		for (int i = 0; i < jsonNode.Count; i++)
