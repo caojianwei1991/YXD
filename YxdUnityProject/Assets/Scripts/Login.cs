@@ -21,6 +21,7 @@ public class Login : MonoBehaviour
 		transform.FindChild ("Exit").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => wwwProvider.Exit ()));
 		transform.FindChild ("Test").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => Test ()));
 		transform.FindChild ("RandomPlay").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => RandomPlay ()));
+		LocalStorage.SchoolID = "";
 		LocalStorage.StudentID = "";
 		LocalStorage.Score = 0;
 		LocalStorage.IsTest = false;

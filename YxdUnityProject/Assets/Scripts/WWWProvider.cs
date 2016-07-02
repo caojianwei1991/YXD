@@ -41,6 +41,10 @@ public class WWWProvider : MonoBehaviour
 				{
 					RedirectURL = response.Headers ["Location"];
 				}
+				if(RedirectURL == null || RedirectURL == "")
+				{
+					RedirectURL = "http://52.221.227.248";
+				}
 			}
 			catch (Exception e)
 			{
