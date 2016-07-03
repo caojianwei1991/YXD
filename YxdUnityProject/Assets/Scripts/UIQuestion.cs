@@ -117,8 +117,11 @@ public class UIQuestion : MonoBehaviour
 		{
 			if (mgc.GameType == GAME_TYPE.ListenPicture)
 			{
-				mgc.SetAllQuestionsBtnIsEnable(false);
-				mgc.JudgeIsMatch (CharacterID);
+				mgc.SetAllQuestionsBtnIsEnable (false);
+				SoundPlay.Instance.Play (CharacterID, !IsEnglish, () =>
+				{
+					mgc.JudgeIsMatch (CharacterID);
+				});
 			}
 		});
 	}

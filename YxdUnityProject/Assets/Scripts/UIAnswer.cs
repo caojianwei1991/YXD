@@ -94,7 +94,7 @@ public class UIAnswer : MonoBehaviour
 		mUIButton.onClick.Clear ();
 		mUIDragObject.enabled = false;
 		LocalPosition = defaultPos;
-		animUITexture.gameObject.SetActive (false);
+		animUITexture.mainTexture = null;
 		if (mAnimation != null)
 		{
 			StopCoroutine (mAnimation);
@@ -131,12 +131,12 @@ public class UIAnswer : MonoBehaviour
 							isMatch = true;
 							uq.ActiveNameUI ();
 							gameObject.SetActive (false);
-							mgc.JudgeIsMatch ();
 						}
 						else
 						{
 							SoundPlay.Instance.PlayLocal (Random.Range (21, 23), IsEnglish);
 						}
+						mgc.JudgeIsMatch ();
 						break;
 					}
 				}
@@ -162,13 +162,13 @@ public class UIAnswer : MonoBehaviour
 		EventDelegate.Set (mUIButton.onClick, delegate
 		{
 			SoundPlay.Instance.Play (CharacterID, IsEnglish);
-			mgc.uiFinger.Init();
+			mgc.uiFinger.Init ();
 			if (mgc.GameType == GAME_TYPE.ReadPicture)
 			{
 				mgc.SetAllAnswersBtnIsEnable (false);
 				mgc.uiCharacter.MoveTo (animUITexture.transform.position, () =>
 				{
-					mgc.uiCharacter.ItweenMoveTo (mgc.answer.mTransform.position + new Vector3 (-185, 200, 0) * mgc.answer.mTransform.lossyScale.x);
+					mgc.uiCharacter.ItweenMoveTo (mgc.answer.mTransform.position + animUITexture.transform.localPosition * mgc.answer.mTransform.lossyScale.x);
 					iTween.MoveTo (gameObject, iTween.Hash ("position", mgc.answer.mTransform.localPosition, "islocal", true, "time", 1, "easetype", iTween.EaseType.easeOutBack, "oncomplete", "OnComplete"));
 				});
 			}
@@ -177,14 +177,14 @@ public class UIAnswer : MonoBehaviour
 
 	void OnComplete ()
 	{
-		if(!mgc.JudgeIsMatch (CharacterID))
+		if (!mgc.JudgeIsMatch (CharacterID))
 		{
-			mgc.uiCharacter.Init();
+			mgc.uiCharacter.Init ();
 			iTween.MoveTo (gameObject, iTween.Hash ("position", defaultPos, "islocal", true, "time", 1, "easetype", iTween.EaseType.easeOutBack, "oncomplete", "OnComplete1"));
 		}
 	}
 
-	void OnComplete1()
+	void OnComplete1 ()
 	{
 		mgc.SetAllAnswersBtnIsEnable (true);
 	}

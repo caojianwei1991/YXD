@@ -33,6 +33,8 @@ public class MainGameController : MonoBehaviour
 	string TotalLogID;
 	System.DateTime startAnswerTime;
 	int TotalQuestions;
+	UILabel redHeartLabel;
+	int score;
 
 	public UIQuestion[] uiQuestions{ get; private set; }
 
@@ -90,6 +92,8 @@ public class MainGameController : MonoBehaviour
 		uiCharacter = transform.FindChild ("Character").GetComponent<UICharacter> ();
 
 		uiFinger = transform.FindChild ("Finger").GetComponent<UIFinger> ();
+
+		redHeartLabel = transform.FindChild ("RedHeart/Label").GetComponent<UILabel> ();
 	}
 
 	void Start ()
@@ -187,6 +191,7 @@ public class MainGameController : MonoBehaviour
 			}
 			if (isFinish)
 			{
+				AddScoreAnimation ();
 				uiCharacter.PlayResultSound (Random.Range (4, 7), false, () =>
 				{
 					AllRight ();
@@ -198,6 +203,7 @@ public class MainGameController : MonoBehaviour
 			if (answer.CharacterID == CharacterID)
 			{
 				isAllRight = true;
+				AddScoreAnimation ();
 				uiCharacter.PlayResultSound (Random.Range (4, 7), false, () =>
 				{
 					AllRight ();
@@ -286,17 +292,26 @@ public class MainGameController : MonoBehaviour
 		}
 	}
 
+	bool isStop;
+
 	void ShowVoice ()
 	{
 		uiFinger.Show ();
 		uiFinger.SetPos (new Vector3 (256, -310, 0));
 		voice.gameObject.SetActive (true);
+		var ie = StartUITextureAnimation (voiceUITexture, "", voiceTexture);
+		iEnumeratorList.Add (ie);
 		EventDelegate.Set (voice.onClick, delegate
 		{
-			voice.isEnabled = false;
-			var ie = StartUITextureAnimal (voiceUITexture, "", voiceTexture);
-			iEnumeratorList.Add (ie);
-			StartCoroutine (ie);
+			if (isStop)
+			{
+				StopCoroutine (ie);
+			}
+			else
+			{
+				StartCoroutine (ie);
+			}
+			isStop = !isStop;
 			uiFinger.Init ();
 		});
 	}
@@ -305,7 +320,7 @@ public class MainGameController : MonoBehaviour
 	{
 		clickNum ++;
 		string[] str = result.Split (',');
-		if (int.Parse (str [1]) > 60)
+		if (float.Parse (str [1]) > 60)
 		{
 			var jc = new JSONClass ();
 			jc.Add ("GameType", ((int)GAME_TYPE.SpeechRecognizer).ToString ());
@@ -313,6 +328,7 @@ public class MainGameController : MonoBehaviour
 			jc.Add ("RecogText", str [0]);
 			jc.Add ("RecogScore", str [1]);
 			WWWProvider.Instance.StartWWWCommunication ("GetCorrectAnswer", jc);
+			AddScoreAnimation ();
 			uiCharacter.PlayResultSound (Random.Range (4, 7), false, () =>
 			{
 				voice.isEnabled = true;
@@ -343,6 +359,7 @@ public class MainGameController : MonoBehaviour
 		if (answer.IsEnglish)
 		{
 			wordHWR = answer.Name;
+			mHWRLabel.text = "             ";
 		}
 		else
 		{
@@ -394,6 +411,7 @@ public class MainGameController : MonoBehaviour
 			jc.Add ("RecogText", RecogText);
 			jc.Add ("RecogScore", RecogScore.ToString ());
 			WWWProvider.Instance.StartWWWCommunication ("GetCorrectAnswer", jc);
+			AddScoreAnimation ();
 			uiCharacter.PlayResultSound (Random.Range (4, 7), false, () =>
 			{
 				AllRight ();
@@ -642,7 +660,7 @@ public class MainGameController : MonoBehaviour
 			case "2":
 				GameType = GAME_TYPE.SpeechRecognizer;
 				ShowPictures (1);
-				ShowSpeaker ();
+				ShowVoice ();
 				break;
 			case "3":
 				GameType = GAME_TYPE.HWR;
@@ -763,7 +781,7 @@ public class MainGameController : MonoBehaviour
 		}
 	}
 
-	IEnumerator StartUITextureAnimal (UITexture uiTexture, string CharacterID, Texture[] textures = null)
+	IEnumerator StartUITextureAnimation (UITexture uiTexture, string CharacterID, Texture[] textures = null)
 	{
 		while (uiTexture.gameObject.activeInHierarchy)
 		{
@@ -814,6 +832,31 @@ public class MainGameController : MonoBehaviour
 		for (int i = 0; i < uiAnswers.Length; i++)
 		{
 			uiAnswers [i].SetButtonIsEnabled (IsEnabled);
+		}
+	}
+
+	void AddScoreAnimation ()
+	{
+		bool IsCorrect;
+		if (GameType == GAME_TYPE.LinkPicture)
+		{
+			IsCorrect = clickNum == 4;
+		}
+		else
+		{
+			IsCorrect = clickNum == 1;
+		}
+		if (IsCorrect)
+		{
+			score ++;
+			GameObject obj = NGUITools.AddChild (gameObject, (GameObject)Resources.Load ("Prefabs/RedHeart"));
+			TweenTransform tt = obj.GetComponent<TweenTransform> ();
+			tt.to = redHeartLabel.transform;
+			tt.AddOnFinished (() => 
+			{
+				Destroy (obj);
+				redHeartLabel.text = score.ToString ();
+			});
 		}
 	}
 

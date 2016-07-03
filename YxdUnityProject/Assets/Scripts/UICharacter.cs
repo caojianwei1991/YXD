@@ -52,7 +52,7 @@ public class UICharacter : MonoBehaviour
 		//gameObject.SetActive (false);
 		//transform.localPosition = defaultPos;
 		MoveTo (defaultPos, null, true);
-		MTexture = null;
+		//MTexture = null;
 		mUIButton.onClick.Clear ();
 		if (mAnimation != null)
 		{

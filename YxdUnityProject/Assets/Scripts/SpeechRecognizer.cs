@@ -6,6 +6,7 @@ using System;
 public class SpeechRecognizer : MonoBehaviour
 {
 	MainGameController mgc;
+	bool isStop;
 
 	void Awake ()
 	{
@@ -18,7 +19,15 @@ public class SpeechRecognizer : MonoBehaviour
 		{
 			AndroidJavaClass jc = new AndroidJavaClass ("com.unity3d.player.UnityPlayer");
 			AndroidJavaObject jo = jc.GetStatic<AndroidJavaObject> ("currentActivity");
-			jo.Call ("StartIse", mgc.answer.IsEnglish ? "en_us" : "zh_cn", "[word]" + mgc.answer.Name);
+			if (isStop)
+			{
+				jo.Call ("StopIse");
+			}
+			else
+			{
+				jo.Call ("StartIse", mgc.answer.IsEnglish ? "en_us" : "zh_cn", "[word]" + mgc.answer.Name);
+			}
+			isStop = !isStop;
 		}
 		else
 		{

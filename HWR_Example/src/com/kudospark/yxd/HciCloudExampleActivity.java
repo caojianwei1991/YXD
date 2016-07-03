@@ -55,10 +55,10 @@ public class HciCloudExampleActivity extends UnityPlayerActivity  {
         boolean loadResult = mAccountInfo.loadAccountInfo(this);
         if (loadResult) {
             // 加载信息成功进入主界面
-        	ShowTip("加载灵云账号成功");
+        	Log.i(TAG, "加载灵云账号成功");
         } else {
             // 加载信息失败，显示失败界面
-        	ShowTip("加载灵云账号失败！请在assets/AccountInfo.txt文件中填写正确的灵云账户信息，账户需要从www.hcicloud.com开发者社区上注册申请。");
+        	Log.e(TAG, "加载灵云账号失败！请在assets/AccountInfo.txt文件中填写正确的灵云账户信息，账户需要从www.hcicloud.com开发者社区上注册申请。");
         	return;
         }
         
@@ -95,9 +95,9 @@ public class HciCloudExampleActivity extends UnityPlayerActivity  {
 		mIse.setParameter(SpeechConstant.TEXT_ENCODING, "utf-8");
 		mIse.setParameter(SpeechConstant.ISE_AUDIO_PATH, Environment.getExternalStorageDirectory()+"/IseCache/ise.wav");
 		mIse.setParameter(SpeechConstant.AUDIO_FORMAT,"wav");
-//		mIse.setParameter(SpeechConstant.VAD_BOS, vad_bos);
-//		mIse.setParameter(SpeechConstant.VAD_EOS, vad_eos);
-//		mIse.setParameter(SpeechConstant.KEY_SPEECH_TIMEOUT, speech_timeout);
+		mIse.setParameter(SpeechConstant.VAD_BOS, "10000");
+		mIse.setParameter(SpeechConstant.VAD_EOS, "10000");
+		mIse.setParameter(SpeechConstant.KEY_SPEECH_TIMEOUT, "-1");
 //		mIse.setParameter(SpeechConstant.RESULT_LEVEL, result_level);
 		
 		Log.i(TAG, "StartIse Result: " + mIse.startEvaluating(evaText, null, mEvaluatorListener));
