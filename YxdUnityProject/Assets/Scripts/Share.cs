@@ -85,7 +85,7 @@ public class Share : MonoBehaviour
 		content.SetText (text);
 		//content.SetImageUrl ("https://f1.webshare.mob.com/code/demo/img/1.jpg");
 		content.SetTitle ("易学岛");
-		content.SetTitleUrl ("https://www.baidu.com/");
+		content.SetTitleUrl ("http://www.kudospark.com/");
 		//content.SetSite ("Mob-ShareSDK");
 		//content.SetSiteUrl ("https://www.baidu.com/");
 		//content.SetUrl ("https://www.baidu.com/");

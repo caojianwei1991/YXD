@@ -9,6 +9,7 @@ public class SelectScene : MonoBehaviour
 	void Awake ()
 	{
 		redHeartLabel = transform.FindChild ("RedHeart/Label").GetComponent<UILabel> ();
+		transform.FindChild ("RedHeart").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => Share.Show ()));
 		transform.FindChild ("About").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => RequestAboutContent ()));
 		transform.FindChild ("Back").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
 		{

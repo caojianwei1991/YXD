@@ -93,8 +93,8 @@ public class HciCloudExampleActivity extends UnityPlayerActivity  {
 		mIse.setParameter(SpeechConstant.LANGUAGE, mLanguage);
 		mIse.setParameter(SpeechConstant.ISE_CATEGORY, "read_word");
 		mIse.setParameter(SpeechConstant.TEXT_ENCODING, "utf-8");
-		mIse.setParameter(SpeechConstant.ISE_AUDIO_PATH, Environment.getExternalStorageDirectory()+"/IseCache/ise.wav");
-		mIse.setParameter(SpeechConstant.AUDIO_FORMAT,"wav");
+		//mIse.setParameter(SpeechConstant.ISE_AUDIO_PATH, Environment.getExternalStorageDirectory()+"/IseCache/ise.wav");
+		//mIse.setParameter(SpeechConstant.AUDIO_FORMAT,"wav");
 		mIse.setParameter(SpeechConstant.VAD_BOS, "10000");
 		mIse.setParameter(SpeechConstant.VAD_EOS, "10000");
 		mIse.setParameter(SpeechConstant.KEY_SPEECH_TIMEOUT, "-1");
@@ -107,6 +107,15 @@ public class HciCloudExampleActivity extends UnityPlayerActivity  {
 	{
 		mIse.stopEvaluating();
 		Log.i(TAG, "StopIse");
+	}
+	
+	public void CancelIse()
+	{
+		if(mIse.isEvaluating())
+		{
+			mIse.cancel();
+		}
+		Log.i(TAG, "CancelIse");
 	}
 	
 	void StartSpeechRecognizer()
@@ -128,6 +137,15 @@ public class HciCloudExampleActivity extends UnityPlayerActivity  {
 	{
 		mAsr.stopListening();
 		Log.i(TAG, "StopSpeechRecognizer");
+	}
+	
+	public void CancelSpeechRecognizer()
+	{
+		if(mAsr.isListening())
+		{
+			mAsr.cancel();
+		}
+		Log.i(TAG, "CancelSpeechRecognizer");
 	}
 	
 	// 评测监听接口
@@ -183,7 +201,7 @@ public class HciCloudExampleActivity extends UnityPlayerActivity  {
 		@Override
 		public void onVolumeChanged(int volume, byte[] data) {
 			ShowTip("当前正在说话，音量大小：" + volume);
-			Log.d(TAG, "返回音频数据："+data.length);
+			//Log.d(TAG, "返回音频数据："+data.length);
 		}
 
 		@Override

@@ -22,10 +22,8 @@ public class MainGameController : MonoBehaviour
 	string questionOrder = "0";
 	int returnQuestionNum;
 	UIButton speaker, voice, mHWR;
-	UITexture voiceUITexture;
-	Texture[] voiceTexture = new Texture[3];
 	UILabel mHWRLabel;
-	GameObject tablet;
+	GameObject tabletCn, tabletEn;
 	List<IEnumerator> iEnumeratorList = new List<IEnumerator> ();
 	int clickNum;
 	bool isRandomQuestion;
@@ -78,22 +76,19 @@ public class MainGameController : MonoBehaviour
 
 		speaker = transform.FindChild ("Speaker").GetComponent<UIButton> ();
 		voice = transform.FindChild ("Voice").GetComponent<UIButton> ();
-		voiceUITexture = transform.FindChild ("Voice").GetComponent<UITexture> ();
-
-		for (int i = 1; i <= voiceTexture.Length; i++)
-		{
-			voiceTexture [i - 1] = (Texture)Resources.Load ("Texture/Voice" + i);
-		}
 
 		mHWR = transform.FindChild ("HWR").GetComponent<UIButton> ();
 		mHWRLabel = transform.FindChild ("HWR/Label").GetComponent<UILabel> ();
-		tablet = transform.FindChild ("Tablet").gameObject;
+		tabletCn = transform.FindChild ("TabletCn").gameObject;
+		tabletEn = transform.FindChild ("TabletEn").gameObject;
 
 		uiCharacter = transform.FindChild ("Character").GetComponent<UICharacter> ();
 
 		uiFinger = transform.FindChild ("Finger").GetComponent<UIFinger> ();
 
 		redHeartLabel = transform.FindChild ("RedHeart/Label").GetComponent<UILabel> ();
+
+		transform.FindChild ("RedHeart").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => Share.Show ()));
 	}
 
 	void Start ()
@@ -121,15 +116,15 @@ public class MainGameController : MonoBehaviour
 		speaker.normalSprite = "yuyin1";
 		speaker.onClick.Clear ();
 
-		voice.gameObject.SetActive (false);
-		voiceUITexture.mainTexture = voiceTexture [0];
 		voice.onClick.Clear ();
+		voice.GetComponent<SpeechRecognizer> ().Init ();
 
 		mHWR.gameObject.SetActive (false);
 		mHWRLabel.text = "";
 		mHWR.onClick.Clear ();
 
-		tablet.SetActive (false);
+		tabletCn.SetActive (false);
+		tabletEn.SetActive (false);
 
 		for (int i = 0; i < iEnumeratorList.Count; i++)
 		{
@@ -257,7 +252,7 @@ public class MainGameController : MonoBehaviour
 		}
 	}
 
-#region 听音识字
+#region 语音评测
 
 	void ShowSpeaker ()
 	{
@@ -292,26 +287,13 @@ public class MainGameController : MonoBehaviour
 		}
 	}
 
-	bool isStop;
-
 	void ShowVoice ()
 	{
 		uiFinger.Show ();
 		uiFinger.SetPos (new Vector3 (256, -310, 0));
 		voice.gameObject.SetActive (true);
-		var ie = StartUITextureAnimation (voiceUITexture, "", voiceTexture);
-		iEnumeratorList.Add (ie);
 		EventDelegate.Set (voice.onClick, delegate
 		{
-			if (isStop)
-			{
-				StopCoroutine (ie);
-			}
-			else
-			{
-				StartCoroutine (ie);
-			}
-			isStop = !isStop;
 			uiFinger.Init ();
 		});
 	}
@@ -375,9 +357,17 @@ public class MainGameController : MonoBehaviour
 			SoundPlay.Instance.Play (answer.CharacterID, answer.IsEnglish, () =>
 			{
 				mHWR.gameObject.SetActive (false);
-				tablet.SetActive (true);
 				uiFinger.Init ();
-				uiCharacter.MoveTo (tablet.GetComponent<HWR> ().character.transform.position);
+				if (answer.IsEnglish)
+				{
+					tabletEn.SetActive (true);
+					uiCharacter.MoveTo (tabletEn.GetComponent<HWR> ().character.transform.position);
+				}
+				else
+				{
+					tabletCn.SetActive (true);
+					uiCharacter.MoveTo (tabletCn.GetComponent<HWR> ().character.transform.position);
+				}
 			});
 		});
 	}
