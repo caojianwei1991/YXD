@@ -107,9 +107,9 @@ public class UIQuestion : MonoBehaviour
 	{
 		gameObject.SetActive (true);
 		CharacterID = Character_ID;
-		IsEnglish = !mgc.jsonNode ["IsEnglish"].AsBool;
+		IsEnglish = !(mgc.jsonNode ["IsEnglish"].Value == "1");
 		mUILabel.gameObject.SetActive (mgc.jsonNode ["DisplayText"].AsBool);
-		Name = AssetData.GetNameByID (Character_ID, IsEnglish);
+		Name = AssetData.GetNameByID (Character_ID, mgc.GameType == GAME_TYPE.LinkPicture ? !IsEnglish : IsEnglish);
 		mTexture = AssetData.GetImageByID (Character_ID);
 		mAnimation = StartAnimation (AssetData.GetAnimationImageByID (Character_ID));
 		StartCoroutine (mAnimation);

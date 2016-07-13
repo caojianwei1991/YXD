@@ -157,7 +157,7 @@ public class UIAnswer : MonoBehaviour
 	{
 		gameObject.SetActive (true);
 		CharacterID = Character_ID;
-		IsEnglish = mgc.jsonNode ["IsEnglish"].AsBool;
+		IsEnglish = mgc.jsonNode ["IsEnglish"].Value == "1";
 		Name = AssetData.GetNameByID (CharacterID, IsEnglish);
 		EventDelegate.Set (mUIButton.onClick, delegate
 		{

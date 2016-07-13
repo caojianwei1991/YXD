@@ -8,6 +8,7 @@ public class Login : MonoBehaviour
 	UIInput inputSchoolID, inputUserName;
 	UIToggle isSavePSW, cnUIToggle, enUIToggle;
 	WWWProvider wwwProvider;
+	UIButton btnExit, btnLogin, btnRandomPlay;
 
 	void Awake ()
 	{
@@ -17,10 +18,14 @@ public class Login : MonoBehaviour
 		isSavePSW = transform.FindChild ("RememberPSW").GetComponent<UIToggle> ();
 		cnUIToggle = transform.FindChild ("Chinese").GetComponent<UIToggle> ();
 		enUIToggle = transform.FindChild ("English").GetComponent<UIToggle> ();
-		transform.FindChild ("Login").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => StartLogin ()));
-		transform.FindChild ("Exit").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => wwwProvider.Exit ()));
+		btnLogin = transform.FindChild ("Login").GetComponent<UIButton> ();
+		btnLogin.onClick.Add (new EventDelegate (() => StartLogin ()));
+		btnExit = transform.FindChild ("Exit").GetComponent<UIButton> ();
+		btnExit.onClick.Add (new EventDelegate (() => wwwProvider.Exit ()));
 		transform.FindChild ("Test").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => Test ()));
-		transform.FindChild ("RandomPlay").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => RandomPlay ()));
+		btnRandomPlay = transform.FindChild ("RandomPlay").GetComponent<UIButton> ();
+		btnRandomPlay.onClick.Add (new EventDelegate (() => RandomPlay ()));
+		cnUIToggle.onChange.Add (new EventDelegate (() => ChangeToggle ()));
 		LocalStorage.SchoolID = "";
 		LocalStorage.StudentID = "";
 		LocalStorage.Score = 0;
@@ -44,6 +49,23 @@ public class Login : MonoBehaviour
 			enUIToggle.value = true;
 		}
 		SoundPlay.Instance.PlayLocal (1, enUIToggle.value, () => SoundPlay.Instance.PlayBG ());
+	}
+
+	void ChangeToggle ()
+	{
+		LocalStorage.Language = cnUIToggle.value ? "0" : "1";
+		if (cnUIToggle.value)
+		{
+			btnExit.normalSprite = "exit_cn";
+			btnLogin.normalSprite = "login_cn";
+			btnRandomPlay.GetComponent<UITexture> ().mainTexture = (Texture)Resources.Load ("Texture/casual_cn");
+		}
+		else
+		{
+			btnExit.normalSprite = "exit_en";
+			btnLogin.normalSprite = "login_en";
+			btnRandomPlay.GetComponent<UITexture> ().mainTexture = (Texture)Resources.Load ("Texture/casual_en");
+		}
 	}
 	
 	void StartLogin ()
@@ -165,7 +187,6 @@ public class Login : MonoBehaviour
 				if (jn ["IsSuccess"].Value == "1")
 				{
 					LocalStorage.StudentID = UserName;
-					LocalStorage.SchoolID = "kudospark";
 					LocalStorage.Email = Email;
 					EnterRandomPlay ();
 				}
@@ -179,6 +200,7 @@ public class Login : MonoBehaviour
 
 	void EnterRandomPlay ()
 	{
+		LocalStorage.SchoolID = "kudospark";
 		LocalStorage.IsRandomPlay = true;
 		LocalStorage.Language = cnUIToggle.value ? "0" : "1";
 		PlayerPrefs.SetString ("Language", LocalStorage.Language);

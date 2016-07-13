@@ -161,7 +161,7 @@ public class MainGameController : MonoBehaviour
 	void SetAnswer ()
 	{
 		int choiceID = jsonNode ["Choice"].AsInt - 1;
-		bool isEnglish = jsonNode ["IsEnglish"].AsBool;
+		bool isEnglish = jsonNode ["IsEnglish"].Value == "1";
 		string characterID = jsonNode ["Characters"] [choiceID] ["CharacterID"].Value;
 		answer.Name = AssetData.GetNameByID (characterID, isEnglish);
 		answer.CharacterID = characterID;
@@ -217,7 +217,7 @@ public class MainGameController : MonoBehaviour
 							{
 								SetAllQuestionsBtnIsEnable (true);
 							});
-						});
+						}, CharacterID);
 					});
 				}
 				else if (GameType == GAME_TYPE.ReadPicture)
@@ -236,7 +236,7 @@ public class MainGameController : MonoBehaviour
 	{
 		TotalQuestions++;
 		SubmitLogs (false);
-		NextQuestion (false, "");
+		NextQuestion ();
 	}
 
 	void ShowAnimalNames ()
@@ -580,24 +580,39 @@ public class MainGameController : MonoBehaviour
 			totalQuestionSize = allQuestions ["TotalQuestionSize"].AsInt;
 		}
 		questionIndex = 0;
-		DataToUI ();
+		NextQuestion ();
 	}
 
 	void DataToUI ()
 	{
 		jsonNode = allQuestions ["Questions"] [questionIndex];
-		switch (jsonNode ["GameID"].Value)
+		int gameID = jsonNode ["GameID"].AsInt;
+
+		if (Application.internetReachability == NetworkReachability.NotReachable)
 		{
-			case "0":
+			if (gameID == 0)
+			{
+				int gameType = jsonNode ["GameType"].AsInt;
+				if (gameType == 2 || gameType == 3)
+				{
+					questionIndex ++;
+					NextQuestion ();
+					return;
+				}
+			}
+		}
+		switch (gameID)
+		{
+			case 0:
 				SetAnswer ();
 				ReadPicture ();
 				break;
-			case "1":
+			case 1:
 				GameType = GAME_TYPE.ListenPicture;
 				SetAnswer ();
 				ListenPicture ();
 				break;
-			case "2":
+			case 2:
 				GameType = GAME_TYPE.LinkPicture;
 				LinkPicture ();
 				break;
@@ -662,7 +677,7 @@ public class MainGameController : MonoBehaviour
 		}
 	}
 
-	public void NextQuestion (bool IsSuccess = true, string JsonData = "")
+	public void NextQuestion ()
 	{
 		InitUI ();
 		if (questionIndex >= returnQuestionNum)

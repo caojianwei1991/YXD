@@ -17,6 +17,16 @@ public class Alert : MonoBehaviour
 		mTransform.FindChild ("Texture/Label").GetComponent<UILabel> ().text = text;
 		UIButton okUIButton = mTransform.FindChild ("Texture/Yes").GetComponent<UIButton> ();
 		UIButton cancelUIButton = mTransform.FindChild ("Texture/No").GetComponent<UIButton> ();
+		if (LocalStorage.Language == "1")
+		{
+			okUIButton.normalSprite = "yes_en";
+			cancelUIButton.normalSprite = "no_en";
+		}
+		else
+		{
+			okUIButton.normalSprite = "yes_cn";
+			cancelUIButton.normalSprite = "no_cn";
+		}
 		if (cancel == null)
 		{
 			okUIButton.transform.localPosition = new Vector3 (0, -250, 0);

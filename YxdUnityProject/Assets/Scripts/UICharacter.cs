@@ -77,7 +77,7 @@ public class UICharacter : MonoBehaviour
 		}
 		mAnimation = StartAnimation ();
 		StartCoroutine (mAnimation);
-		IsEnglish = mgc.jsonNode ["IsEnglish"].AsBool;
+		IsEnglish = mgc.jsonNode ["IsEnglish"].Value == "1";
 		SoundPlay.Instance.PlayLocal (mgc.characterSoundID, IsEnglish, () =>
 		{
 			if (IsLiaison)
@@ -110,7 +110,7 @@ public class UICharacter : MonoBehaviour
 		});
 	}
 
-	public void PlayResultSound (int CharacterSoundID, bool IsLiaison, Action CallBack = null)
+	public void PlayResultSound (int CharacterSoundID, bool IsLiaison, Action CallBack = null, string CharacterID = "")
 	{
 		mUIButton.isEnabled = false;
 		if (mAnimation != null)
@@ -123,7 +123,7 @@ public class UICharacter : MonoBehaviour
 		{
 			if (IsLiaison)
 			{
-				SoundPlay.Instance.Play (mgc.answer.CharacterID, IsEnglish, () =>
+				SoundPlay.Instance.Play (CharacterID == "" ? mgc.answer.CharacterID : CharacterID, IsEnglish, () =>
 				{
 					mUIButton.isEnabled = true;
 					if (mAnimation != null)

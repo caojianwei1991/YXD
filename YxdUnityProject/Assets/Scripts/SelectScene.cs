@@ -5,6 +5,7 @@ using SimpleJSON;
 public class SelectScene : MonoBehaviour
 {
 	UILabel redHeartLabel;
+	UIButton btnZoo, btnOrchard;
 
 	void Awake ()
 	{
@@ -16,13 +17,15 @@ public class SelectScene : MonoBehaviour
 			LocalStorage.IsSwitchBG = false;
 			Application.LoadLevel ("Login");
 		}));
-		transform.FindChild ("Zoo").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
+		btnZoo = transform.FindChild ("Zoo").GetComponent<UIButton> ();
+		btnZoo.onClick.Add (new EventDelegate (() => 
 		{
 			LocalStorage.IsSwitchBG = true;
 			LocalStorage.SceneID = "0";
 			Application.LoadLevel ("Zoo");
 		}));
-		transform.FindChild ("Orchard").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
+		btnOrchard = transform.FindChild ("Orchard").GetComponent<UIButton> ();
+		btnOrchard.onClick.Add (new EventDelegate (() => 
 		{
 			LocalStorage.IsSwitchBG = true;
 			LocalStorage.SceneID = "1";
@@ -46,5 +49,15 @@ public class SelectScene : MonoBehaviour
 	{
 		redHeartLabel.text = LocalStorage.Score.ToString ();
 		SoundPlay.Instance.PlayBG ();
+		if (LocalStorage.Language == "1")
+		{
+			btnZoo.GetComponent<UITexture> ().mainTexture = (Texture)Resources.Load ("Texture/zoo_en");
+			btnOrchard.GetComponent<UITexture> ().mainTexture = (Texture)Resources.Load ("Texture/orchard_en");
+		}
+		else
+		{
+			btnZoo.GetComponent<UITexture> ().mainTexture = (Texture)Resources.Load ("Texture/zoo_cn");
+			btnOrchard.GetComponent<UITexture> ().mainTexture = (Texture)Resources.Load ("Texture/orchard_cn");
+		}
 	}
 }
