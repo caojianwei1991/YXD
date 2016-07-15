@@ -62,18 +62,15 @@ public class SoundPlay : MonoBehaviour
 	};
 	string[] bGSoundPaths = 
 	{
-		"Alexandre Desplat - Moving In",
 		"Alexandre Desplat - Whack-Bat Majorette Ensemble",
-		"Brian Tyler - Now You See Me",
-		"Danny Adler - The Cleaner",
 		"Deyan Pavlov - La Marche Des Petits Renards",
-		"Disney - The Ballad Of Davy Crockett",
-		"Hans Zimmer - Mal Mart",
+		"Lullatone - Here Comes the Sweater Weather (纯音乐)",
+		"Sing, R. Sing! - 幼女幻奏",
 		"The Chemical Brothers - The Devil is in the details",
-		"Theodore Shapiro - Evil With a Dog Face",
-		"Theodore Shapiro - Two Year Montage",
-		"Various Artists - Visit Of The Giant House",
-		"中山真斗 - TEBASAKI"
+		"中山真斗 - 水谷家の食卓",
+		"仲西匡 - 秋と落ち葉と",
+		"増田俊郎 - 祝!恋ばな成就!",
+		"金子隆博 - 二人でお酒"
 	};
 
 	public void Play (string CharacterID, bool IsEnglish, Action CallBack = null)

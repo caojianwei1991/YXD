@@ -89,6 +89,10 @@ public class MainGameController : MonoBehaviour
 		redHeartLabel = transform.FindChild ("RedHeart/Label").GetComponent<UILabel> ();
 
 		transform.FindChild ("RedHeart").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => Share.Show ()));
+
+		transform.FindChild ("Right").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => SwitchQuestion ()));
+
+		transform.FindChild ("Left").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => SwitchQuestion (true)));
 	}
 
 	void Start ()
@@ -236,7 +240,7 @@ public class MainGameController : MonoBehaviour
 	{
 		TotalQuestions++;
 		SubmitLogs (false);
-		NextQuestion ();
+		SwitchQuestion ();
 	}
 
 	void ShowAnimalNames ()
@@ -302,7 +306,8 @@ public class MainGameController : MonoBehaviour
 	{
 		clickNum ++;
 		string[] str = result.Split (',');
-		if (float.Parse (str [1]) > 60)
+		float score = float.Parse (str [1]);
+		if (score > 60)
 		{
 			var jc = new JSONClass ();
 			jc.Add ("GameType", ((int)GAME_TYPE.SpeechRecognizer).ToString ());
@@ -310,7 +315,7 @@ public class MainGameController : MonoBehaviour
 			jc.Add ("RecogText", str [0]);
 			jc.Add ("RecogScore", str [1]);
 			WWWProvider.Instance.StartWWWCommunication ("GetCorrectAnswer", jc);
-			AddScoreAnimation ();
+			AddScoreAnimation ((score * 0.1f).ToString ("F0"));
 			uiCharacter.PlayResultSound (Random.Range (4, 7), false, () =>
 			{
 				voice.isEnabled = true;
@@ -401,7 +406,7 @@ public class MainGameController : MonoBehaviour
 			jc.Add ("RecogText", RecogText);
 			jc.Add ("RecogScore", RecogScore.ToString ());
 			WWWProvider.Instance.StartWWWCommunication ("GetCorrectAnswer", jc);
-			AddScoreAnimation ();
+			AddScoreAnimation ((RecogScore * 0.1f).ToString ());
 			uiCharacter.PlayResultSound (Random.Range (4, 7), false, () =>
 			{
 				AllRight ();
@@ -580,7 +585,7 @@ public class MainGameController : MonoBehaviour
 			totalQuestionSize = allQuestions ["TotalQuestionSize"].AsInt;
 		}
 		questionIndex = 0;
-		NextQuestion ();
+		SwitchQuestion ();
 	}
 
 	void DataToUI ()
@@ -596,7 +601,7 @@ public class MainGameController : MonoBehaviour
 				if (gameType == 2 || gameType == 3)
 				{
 					questionIndex ++;
-					NextQuestion ();
+					SwitchQuestion ();
 					return;
 				}
 			}
@@ -677,8 +682,19 @@ public class MainGameController : MonoBehaviour
 		}
 	}
 
-	public void NextQuestion ()
+	public void SwitchQuestion (bool isPrevious = false)
 	{
+		if (isPrevious)
+		{
+			if (questionIndex > 1)
+			{
+				questionIndex -= 2;
+			}
+			else
+			{
+				return;
+			}
+		}
 		InitUI ();
 		if (questionIndex >= returnQuestionNum)
 		{
@@ -840,7 +856,7 @@ public class MainGameController : MonoBehaviour
 		}
 	}
 
-	void AddScoreAnimation ()
+	void AddScoreAnimation (string Score = "")
 	{
 		bool IsCorrect;
 		if (GameType == GAME_TYPE.LinkPicture)
@@ -855,6 +871,7 @@ public class MainGameController : MonoBehaviour
 		{
 			score ++;
 			GameObject obj = NGUITools.AddChild (gameObject, (GameObject)Resources.Load ("Prefabs/RedHeart"));
+			obj.transform.localPosition = new Vector3 (0, 100, 0);
 			TweenTransform tt = obj.GetComponent<TweenTransform> ();
 			tt.to = redHeartLabel.transform;
 			tt.AddOnFinished (() => 
@@ -862,7 +879,20 @@ public class MainGameController : MonoBehaviour
 				Destroy (obj);
 				redHeartLabel.text = score.ToString ();
 			});
+			if (Score != "")
+			{
+				StartCoroutine (ShowScore (Score));
+			}
 		}
+	}
+
+	IEnumerator ShowScore (string Score)
+	{
+		GameObject obj = NGUITools.AddChild (gameObject, (GameObject)Resources.Load ("Prefabs/Score"));
+		obj.transform.localPosition = new Vector3 (0, -100, 0);
+		obj.GetComponent<UILabel> ().text = Score;
+		yield return new WaitForSeconds (2.5f);
+		Destroy (obj);
 	}
 
 	void OnDestroy ()
