@@ -78,7 +78,7 @@ public class WWWProvider : MonoBehaviour
 			Debug.LogError (www.error);
 			if (OnSuccess != null)
 			{
-				OnSuccess (false, www.error);
+				//OnSuccess (false, www.error);
 			}
 		}
 		else

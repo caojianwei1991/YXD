@@ -114,8 +114,17 @@ public class Share : MonoBehaviour
 		WWWProvider.Instance.StartWWWCommunication ("GetShareText", jc, (x, y) =>
 		{
 			var jn = JSONNode.Parse (y);
-			transform.FindChild ("Texture/Name").GetComponent<UILabel> ().text = LocalStorage.StudentID;
 			transform.FindChild ("Texture/Label").GetComponent<UILabel> ().text = text = jn ["shareText"].Value;
+		});
+		var jc1 = new JSONClass ();
+		jc1.Add ("StudentID", UserID);
+		WWWProvider.Instance.StartWWWCommunication ("GetStudentInfo", jc1, (x, y) =>
+		{
+			var jn = JSONNode.Parse (y);
+			if(jn ["StudentName"].Value != "null")
+			{
+				transform.FindChild ("Texture/Name").GetComponent<UILabel> ().text = jn ["StudentName"].Value;
+			}
 		});
 	}
 }
