@@ -8,24 +8,30 @@ using System.Collections.Generic;
 
 public class Download : MonoBehaviour
 {
-	string[] cachePath = new string[3];
+	string[] sdCachePath = new string[3];
+	string[] streamingAssetsPath = new string[3];
 	UISlider uiSlider;
 	readonly string timeFormat = "yyyy-MM-dd HH:mm:ss";
 	//readonly string minUpdateTime = "1970-01-01 00:00:00";
 	string description = "正在下载资源：{0}...";
-	string assetList, localAssetList;
+	string sdAssetList, streamingAssetsList;
 	UILabel descriptionLabel;
 	float uiSliderValue, assetNum;
 	JSONNode jsonNode = new JSONNode ();
-	bool isUpdateNeeded, isDownLoadFail, isLoadStreamingAssets;
+	JSONNode lastJsonNode = new JSONNode ();
+	JSONNode NewJsonNode = new JSONNode ();
+	bool isUpdateNeeded, isDownLoadFail;
 
 	void Awake ()
 	{
-		localAssetList = Application.streamingAssetsPath + "/assetList";
-		assetList = DirectoryTool.persistentDataPath + "/assetList";
-		cachePath [0] = DirectoryTool.persistentDataPath + "/AudioCache/";
-		cachePath [1] = DirectoryTool.persistentDataPath + "/ImageCache/";
-		cachePath [2] = DirectoryTool.persistentDataPath + "/AnimationFolderCache/";
+		streamingAssetsList = Application.streamingAssetsPath + "/assetList";
+		sdAssetList = DirectoryTool.persistentDataPath + "/assetList";
+		sdCachePath [0] = DirectoryTool.persistentDataPath + "/AudioCache/";
+		sdCachePath [1] = DirectoryTool.persistentDataPath + "/ImageCache/";
+		sdCachePath [2] = DirectoryTool.persistentDataPath + "/AnimationFolderCache/";
+		streamingAssetsPath [0] = Application.streamingAssetsPath + "/AudioCache/";
+		streamingAssetsPath [1] = Application.streamingAssetsPath + "/ImageCache/";
+		streamingAssetsPath [2] = Application.streamingAssetsPath + "/AnimationFolderCache/";
 		uiSlider = transform.FindChild ("Loading").GetComponent<UISlider> ();
 		descriptionLabel = transform.FindChild ("Loading/Label").GetComponent<UILabel> ();
 	}
@@ -35,12 +41,12 @@ public class Download : MonoBehaviour
 		Screen.sleepTimeout = SleepTimeout.NeverSleep;
 		try
 		{
-			jsonNode = JSONNode.LoadFromCompressedFile (assetList);
-			UpdateCharactersInfo (false);
+			lastJsonNode = jsonNode = JSONNode.LoadFromCompressedFile (sdAssetList);
+			UpdateCharactersInfo ();
 		}
 		catch (Exception e)
 		{
-			Debug.LogError (string.Format ("JSONNode.LoadFromCompressedFile Fail! assetList={0},Exception={1}", assetList, e.Message));
+			Debug.LogError (string.Format ("JSONNode.LoadFromCompressedFile Fail! assetList={0},Exception={1}", sdAssetList, e.Message));
 			StartCoroutine (ReadLocalAssetList ());
 		}
 	}
@@ -48,18 +54,18 @@ public class Download : MonoBehaviour
 	IEnumerator ReadLocalAssetList ()
 	{
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR
-		WWW www = new WWW (@"file:///" + localAssetList);
+		WWW www = new WWW (@"file:///" + streamingAssetsList);
 #else
-		WWW www = new WWW (localAssetList);
+		WWW www = new WWW (streamingAssetsList);
 #endif
 		yield return www;
-		jsonNode = JSONNode.LoadFromCompressedStream (new MemoryStream (www.bytes));
-		UpdateCharactersInfo (true);
+		lastJsonNode = jsonNode = JSONNode.LoadFromCompressedStream (new MemoryStream (www.bytes));
+		UpdateCharactersInfo ();
 	}
 
-	void UpdateCharactersInfo (bool IsUseLocalAsset)
+	void UpdateCharactersInfo ()
 	{
-		isLoadStreamingAssets = IsUseLocalAsset;
+		isUpdateNeeded = false;
 		if ((LocalStorage.IsRandomPlay && LocalStorage.StudentID == "") || Application.internetReachability == NetworkReachability.NotReachable)
 		{
 			StartCoroutine (DealDownLoadData ());
@@ -79,7 +85,6 @@ public class Download : MonoBehaviour
 		isUpdateNeeded = jn ["UpdateNeeded"].Value == "1";
 		if (isUpdateNeeded)
 		{
-			isLoadStreamingAssets = false;
 			var jc = new JSONClass ();
 			jc.Add ("UpdateTime", jsonNode ["LastUpdateTime"].Value);
 			WWWProvider.Instance.StartWWWCommunication ("DownLoadCharactersInfo", jc, (x , y) =>
@@ -125,13 +130,13 @@ public class Download : MonoBehaviour
 					jsonClass.Add ("ArrayData", "ZhangYi");
 					string str = jsonClass.ToString ();
 					str = str.Replace ("\"ZhangYi\"", y);
-					jsonNode = JSONNode.Parse (str);
-					jsonNode.SaveToCompressedFile (assetList);
+					NewJsonNode = jsonNode = JSONNode.Parse (str);
+					//jsonNode.SaveToCompressedFile (sdAssetList);
 					StartCoroutine (DealDownLoadData ());
 				}
 				catch (Exception e)
 				{
-					Debug.LogError (string.Format ("File.WriteAllBytes Fail! assetList={0},Exception={1}", assetList, e.Message)); 
+					Debug.LogError (string.Format ("File.WriteAllBytes Fail! assetList={0},Exception={1}", sdAssetList, e.Message)); 
 				}
 			});
 		}
@@ -144,20 +149,17 @@ public class Download : MonoBehaviour
 	IEnumerator DealDownLoadData ()
 	{
 		Dictionary<string, ASSET_TYPE> assetNameAndTypeDic = new Dictionary<string, ASSET_TYPE> ();
-		StringBuilder localPath = new StringBuilder ();
+		StringBuilder sdPath = new StringBuilder ();
 		StringBuilder urlPath = new StringBuilder ();
 		StringBuilder animationFolderPath = new StringBuilder ();
-		StringBuilder localFileName = new StringBuilder ();
+		StringBuilder sdFile = new StringBuilder ();
 		isDownLoadFail = false;
 		string currentDownloadURL = jsonNode ["CurrentDownloadURL"].Value;
 		assetNum = jsonNode ["AssetNum"].AsFloat;
 		jsonNode = jsonNode ["ArrayData"];
-
-		if (isLoadStreamingAssets)
+		if (isUpdateNeeded)
 		{
-			cachePath [0] = Application.streamingAssetsPath + "/AudioCache/";
-			cachePath [1] = Application.streamingAssetsPath + "/ImageCache/";
-			cachePath [2] = Application.streamingAssetsPath + "/AnimationFolderCache/";
+			lastJsonNode = lastJsonNode ["ArrayData"];
 		}
 
 		//开始下载.....
@@ -165,38 +167,31 @@ public class Download : MonoBehaviour
 		{
 			string id = jsonNode [i] ["ID"].Value;
 			var jn = jsonNode [i];
+			var lastJn = lastJsonNode [i];
+			bool isUpdate = false;
+			if (isUpdateNeeded)
+			{
+				isUpdate = DateTime.ParseExact (jn ["UpdateTime"].Value, timeFormat, null) > DateTime.ParseExact (lastJn ["UpdateTime"].Value, timeFormat, null);
+			}
 			AssetData.Add (id, ASSET_TYPE.Name, null, jn);
-			for (int j = 0; j < cachePath.Length; j++)
+			for (int j = 0; j < sdCachePath.Length; j++)
 			{
 				assetNameAndTypeDic.Clear ();
 
-				localPath.Remove (0, localPath.Length);
-				localPath.Append (cachePath [j]);
-				localPath.Append (id);
-				localPath.Append ("/");
+				sdPath.Remove (0, sdPath.Length);
+				sdPath.Append (sdCachePath [j]);
+				sdPath.Append (id);
+				sdPath.Append ("/");
 				try
 				{
-					bool isCreate = false;
-					if (isLoadStreamingAssets)
+					if (!Directory.Exists (sdPath.ToString ()))
 					{
-#if UNITY_STANDALONE_WIN || UNITY_EDITOR
-						isCreate = true;
-#else
-						isCreate = false;
-#endif
-					}
-					else
-					{
-						isCreate = true;
-					}
-					if (isCreate && !Directory.Exists (localPath.ToString ()))
-					{
-						Directory.CreateDirectory (localPath.ToString ());
+						Directory.CreateDirectory (sdPath.ToString ());
 					}
 				}
 				catch (Exception e)
 				{
-					Debug.LogError (string.Format ("Directory.CreateDirectory Fail! localPath={0},Exception={1}", localPath, e.Message)); 
+					Debug.LogError (string.Format ("Directory.CreateDirectory Fail! localPath={0},Exception={1}", sdPath, e.Message)); 
 				}
 				if (j == 0)
 				{
@@ -226,16 +221,16 @@ public class Download : MonoBehaviour
 					urlPath.Append ("/");
 					urlPath.Append (item.Key);
 
-					localFileName.Remove (0, localFileName.Length);
-					localFileName.Append (localPath);
-					localFileName.Append (urlPath.ToString ().GetHashCode ());
+					sdFile.Remove (0, sdFile.Length);
+					sdFile.Append (sdPath);
+					sdFile.Append (urlPath.ToString ().GetHashCode ());
 
 					if (item.Value == ASSET_TYPE.ChineseVoice || item.Value == ASSET_TYPE.EnglishVoice)
 					{
-						localFileName.Append (".mp3");
+						sdFile.Append (".mp3");
 					}
 
-					yield return StartCoroutine (DownLoadAsset (id, item, localFileName.ToString (), urlPath.ToString ()));
+					yield return StartCoroutine (DownLoadAsset (j, id, item, sdFile.ToString (), urlPath.ToString (), isUpdate));
 				}
 			}
 		}
@@ -246,6 +241,10 @@ public class Download : MonoBehaviour
 		}
 		else
 		{
+			if(isUpdateNeeded)
+			{
+				NewJsonNode.SaveToCompressedFile (sdAssetList);
+			}
 			uiSlider.value = 1;
 			descriptionLabel.text = description.Contains ("加载") ? "资源加载完成！" : "资源下载完成！";
 			yield return new WaitForSeconds (1);
@@ -254,47 +253,45 @@ public class Download : MonoBehaviour
 		}
 	}
 
-	IEnumerator DownLoadAsset (string ID, KeyValuePair<string, ASSET_TYPE> ItemAssetNameAndType, string LocalPath, string UrlPath)
+	IEnumerator DownLoadAsset (int j, string ID, KeyValuePair<string, ASSET_TYPE> ItemAssetNameAndType, string sdFile, string UrlPath, bool isUpdate)
 	{
 		if (isDownLoadFail)
 		{
 			yield break;
 		}
-		bool isExists = false;
-		if (isLoadStreamingAssets)
-		{
-#if UNITY_STANDALONE_WIN || UNITY_EDITOR
-			isExists = File.Exists (LocalPath) && !isUpdateNeeded;
-#else
-			isExists = true;
-#endif
-		}
-		else
-		{
-			isExists = File.Exists (LocalPath) && !isUpdateNeeded;
-		}
 		string path = "";
-		if (isExists)
-		{
-			if (isLoadStreamingAssets)
-			{
-#if UNITY_STANDALONE_WIN || UNITY_EDITOR
-				path = @"file:///" +LocalPath;
-#else
-				path = LocalPath;
-#endif
-			}
-			else
-			{
-				path = @"file:///" + LocalPath;
-			}
-			description = "正在加载资源：{0}...";
-		}
-		else
+
+		if (isUpdate)
 		{
 			path = UrlPath;
 			description = "正在下载资源：{0}...";
 		}
+		else
+		{
+			description = "正在加载资源：{0}...";
+			if (File.Exists (sdFile))
+			{
+				path = @"file:///" + sdFile;
+			}
+			else
+			{
+				StringBuilder sdPath = new StringBuilder ();
+				sdPath.Append (streamingAssetsPath [j]);
+				sdPath.Append (ID);
+				sdPath.Append ("/");
+				sdPath.Append (UrlPath.ToString ().GetHashCode ());
+				if (ItemAssetNameAndType.Value == ASSET_TYPE.ChineseVoice || ItemAssetNameAndType.Value == ASSET_TYPE.EnglishVoice)
+				{
+					sdPath.Append (".mp3");
+				}
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR
+				path = @"file:///" + sdPath.ToString();
+#else
+				path = sdPath.ToString ();
+#endif
+			}
+		}
+
 		WWW www = new WWW (path);
 		descriptionLabel.text = string.Format (description, ItemAssetNameAndType.Key);
 		yield return www;
@@ -304,7 +301,7 @@ public class Download : MonoBehaviour
 			//isDownLoadFail = true;
 			yield break;
 		}
-		if (!isExists)
+		if (isUpdate)
 		{
 			// 防止空图片造成额外BUG风险
 			if (www.bytes.Length >= 8)
@@ -312,7 +309,7 @@ public class Download : MonoBehaviour
 				try
 				{
 					// 保存图片
-					File.WriteAllBytes (LocalPath, www.bytes);
+					File.WriteAllBytes (sdFile, www.bytes);
 				}
 				catch (Exception e)
 				{

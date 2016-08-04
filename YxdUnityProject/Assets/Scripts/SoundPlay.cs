@@ -82,12 +82,40 @@ public class SoundPlay : MonoBehaviour
 
 	IEnumerator StartPlay (string CharacterID, bool IsEnglish, Action CallBack)
 	{
-		gameAudioSource.clip = AssetData.GetVoiceByID (CharacterID, IsEnglish);
-		gameAudioSource.Play ();
-		yield return new WaitForSeconds (gameAudioSource.clip.length);
+		var clip = AssetData.GetVoiceByID (CharacterID, IsEnglish);
+		if (clip == null)
+		{
+			AndroidJavaClass jc = new AndroidJavaClass ("com.unity3d.player.UnityPlayer");
+			AndroidJavaObject jo = jc.GetStatic<AndroidJavaObject> ("currentActivity");
+			isReceiveTts = false;
+			jo.Call ("StartTts", AssetData.GetNameByID (CharacterID, IsEnglish));
+			yield return StartCoroutine (WaitTtsResult ());
+		}
+		else
+		{
+			gameAudioSource.clip = clip;
+			gameAudioSource.Play ();
+			yield return new WaitForSeconds (gameAudioSource.clip.length);
+
+		}
 		if (CallBack != null)
 		{
 			CallBack ();
+		}
+	}
+
+	bool isReceiveTts;
+
+	void ReceiveTts (string s)
+	{
+		isReceiveTts = true;
+	}
+
+	IEnumerator WaitTtsResult ()
+	{
+		while (!isReceiveTts)
+		{
+			yield return new WaitForSeconds (0.5f);
 		}
 	}
 
@@ -135,7 +163,25 @@ public class SoundPlay : MonoBehaviour
 		bGAudioSource.Play ();
 	}
 
-	public void DestroyiEnumeratorList()
+	public static void PauseBG (bool isPause)
+	{
+		if (isPause)
+		{
+			if (bGAudioSource.isPlaying)
+			{
+				bGAudioSource.Pause ();
+			}
+		}
+		else
+		{
+			if (!bGAudioSource.isPlaying)
+			{
+				bGAudioSource.Play ();
+			}
+		}
+	}
+
+	public void DestroyiEnumeratorList ()
 	{
 		for (int i = 0; i < iEnumeratorList.Count; i++)
 		{

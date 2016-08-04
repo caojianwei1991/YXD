@@ -74,7 +74,7 @@ public class WWWProvider : MonoBehaviour
 		yield return www;
 		if (www.error != null)
 		{
-			Alert.Show (www.error);
+			//Alert.Show (www.error);
 			Debug.LogError (www.error);
 			if (OnSuccess != null)
 			{

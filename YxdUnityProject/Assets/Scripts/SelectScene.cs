@@ -17,14 +17,14 @@ public class SelectScene : MonoBehaviour
 			LocalStorage.IsSwitchBG = false;
 			Application.LoadLevel ("Login");
 		}));
-		btnZoo = transform.FindChild ("Zoo").GetComponent<UIButton> ();
+		btnZoo = transform.FindChild ("SceneList/Zoo").GetComponent<UIButton> ();
 		btnZoo.onClick.Add (new EventDelegate (() => 
 		{
 			LocalStorage.IsSwitchBG = true;
 			LocalStorage.SceneID = "0";
 			Application.LoadLevel ("Zoo");
 		}));
-		btnOrchard = transform.FindChild ("Orchard").GetComponent<UIButton> ();
+		btnOrchard = transform.FindChild ("SceneList/Orchard").GetComponent<UIButton> ();
 		btnOrchard.onClick.Add (new EventDelegate (() => 
 		{
 			LocalStorage.IsSwitchBG = true;

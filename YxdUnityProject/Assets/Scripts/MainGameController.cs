@@ -298,12 +298,15 @@ public class MainGameController : MonoBehaviour
 		voice.gameObject.SetActive (true);
 		EventDelegate.Set (voice.onClick, delegate
 		{
+			voice.isEnabled = false;
 			uiFinger.Init ();
 		});
 	}
 
 	void ReceiveIse (string result)
 	{
+		voice.isEnabled = true;
+		voice.GetComponent<SpeechRecognizer> ().StopAnimation ();
 		clickNum ++;
 		string[] str = result.Split (',');
 		float score = float.Parse (str [1]);
@@ -624,6 +627,7 @@ public class MainGameController : MonoBehaviour
 			default:
 				break;
 		}
+		SoundPlay.PauseBG (false);
 		switch (GameType)
 		{
 			case GAME_TYPE.ReadPicture:
@@ -631,6 +635,7 @@ public class MainGameController : MonoBehaviour
 				uiCharacter.Show (false);
 				break;
 			case GAME_TYPE.SpeechRecognizer:
+				SoundPlay.PauseBG (true);
 				characterSoundID = 10;
 				uiCharacter.Show (false);
 				break;
@@ -640,6 +645,7 @@ public class MainGameController : MonoBehaviour
 				uiCharacter.Show (false);
 				break;
 			case GAME_TYPE.ListenPicture:
+				SoundPlay.PauseBG (true);
 				characterSoundID = 16;
 				uiFinger.SetPos (new Vector3 (180, -444, 0));
 				uiCharacter.Show (true);

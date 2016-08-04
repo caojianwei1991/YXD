@@ -37,23 +37,29 @@ public class SpeechRecognizer : MonoBehaviour
 		isStop = false;
 	}
 
+	public void StopAnimation()
+	{
+		isStop = false;
+		StopCoroutine (mAnimation);
+	}
+
 	public void OnPress (bool pressed)
 	{
 		if (pressed)
 		{
 			AndroidJavaClass jc = new AndroidJavaClass ("com.unity3d.player.UnityPlayer");
 			AndroidJavaObject jo = jc.GetStatic<AndroidJavaObject> ("currentActivity");
-			if (isStop)
-			{
-				StopCoroutine (mAnimation);
-				jo.Call ("StopIse");
-			}
-			else
+//			if (isStop)
+//			{
+//				StopCoroutine (mAnimation);
+//				jo.Call ("StopIse");
+//			}
+//			else
 			{
 				StartCoroutine (mAnimation);
 				jo.Call ("StartIse", mgc.answer.IsEnglish ? "en_us" : "zh_cn", "[word]" + mgc.answer.Name);
 			}
-			isStop = !isStop;
+			isStop = true;
 		}
 		else
 		{
