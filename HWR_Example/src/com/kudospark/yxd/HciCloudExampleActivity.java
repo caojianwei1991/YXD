@@ -1,4 +1,4 @@
-package com.kudospark.yxd;
+﻿package com.kudospark.yxd;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -68,8 +68,10 @@ public class HciCloudExampleActivity extends UnityPlayerActivity implements Spee
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		mToast = Toast.makeText(this, "", Toast.LENGTH_SHORT);
-		SpeechUtility.createUtility(this, "appid=5721ce11");
+		mToast = Toast.makeText(HciCloudExampleActivity.this, "", Toast.LENGTH_SHORT);
+		SpeechUtility.createUtility(HciCloudExampleActivity.this, "appid=5721ce11");
+		
+		mIse = SpeechEvaluator.createEvaluator(HciCloudExampleActivity.this, null);
 		
 		initialEnv();
         initialTts();
@@ -120,7 +122,6 @@ public class HciCloudExampleActivity extends UnityPlayerActivity implements Spee
 	public void StartIse(String language, String evaText)
 	{
 		mLanguage = language;
-		mIse = SpeechEvaluator.createEvaluator(HciCloudExampleActivity.this, null);
 		mIse.setParameter(SpeechConstant.LANGUAGE, mLanguage);
 		mIse.setParameter(SpeechConstant.ISE_CATEGORY, "read_word");
 		mIse.setParameter(SpeechConstant.TEXT_ENCODING, "utf-8");
@@ -129,9 +130,9 @@ public class HciCloudExampleActivity extends UnityPlayerActivity implements Spee
 		//mIse.setParameter(SpeechConstant.VAD_BOS, "10000");
 		//mIse.setParameter(SpeechConstant.VAD_EOS, "10000");
 		mIse.setParameter(SpeechConstant.KEY_SPEECH_TIMEOUT, "10000");
-//		mIse.setParameter(SpeechConstant.RESULT_LEVEL, result_level);
+		//mIse.setParameter(SpeechConstant.RESULT_LEVEL, "complete");
 		
-		Log.i(TAG, "StartIse Result: " + mIse.startEvaluating(evaText, null, mEvaluatorListener));
+		Log.i(TAG, "StartIse Result: " + mIse.startEvaluating(evaText, null, mEvaluatorListener)+"language="+language+"evaText="+evaText);
 	}
 	
 	public void StopIse()

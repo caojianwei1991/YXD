@@ -37,7 +37,7 @@ public class SpeechRecognizer : MonoBehaviour
 		isStop = false;
 	}
 
-	public void StopAnimation()
+	public void StopAnimation ()
 	{
 		isStop = false;
 		StopCoroutine (mAnimation);
@@ -57,7 +57,8 @@ public class SpeechRecognizer : MonoBehaviour
 //			else
 			{
 				StartCoroutine (mAnimation);
-				jo.Call ("StartIse", mgc.answer.IsEnglish ? "en_us" : "zh_cn", "[word]" + mgc.answer.Name);
+				string evaText = mgc.answer.IsEnglish ? "[word]" : "<customizer:interphonic>";
+				jo.Call ("StartIse", mgc.answer.IsEnglish ? "en_us" : "zh_cn", evaText + mgc.answer.Name);
 			}
 			isStop = true;
 		}

@@ -195,8 +195,16 @@ public class Download : MonoBehaviour
 				}
 				if (j == 0)
 				{
-					assetNameAndTypeDic.Add (jn ["ChineseVoice"].Value, ASSET_TYPE.ChineseVoice);
-					assetNameAndTypeDic.Add (jn ["EnglishVoice"].Value, ASSET_TYPE.EnglishVoice);
+					string keyVoice = jn ["ChineseVoice"].Value;
+					if (keyVoice != "")
+					{
+						assetNameAndTypeDic [keyVoice] = ASSET_TYPE.ChineseVoice;
+					}
+					keyVoice = jn ["EnglishVoice"].Value;
+					if (keyVoice != "")
+					{
+						assetNameAndTypeDic [keyVoice] = ASSET_TYPE.EnglishVoice;
+					}
 				}
 				else if (j == 1)
 				{
@@ -241,7 +249,7 @@ public class Download : MonoBehaviour
 		}
 		else
 		{
-			if(isUpdateNeeded)
+			if (isUpdateNeeded)
 			{
 				NewJsonNode.SaveToCompressedFile (sdAssetList);
 			}
