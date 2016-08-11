@@ -640,7 +640,7 @@ public class MainGameController : MonoBehaviour
 				uiCharacter.Show (false);
 				break;
 			case GAME_TYPE.HWR:
-				characterSoundID = 13;
+				characterSoundID = LocalStorage.SceneID == "0" ? 2 : 13;
 				uiFinger.SetPos (new Vector3 (356, -456, 0));
 				uiCharacter.Show (false);
 				break;

@@ -167,11 +167,27 @@ public class Download : MonoBehaviour
 		{
 			string id = jsonNode [i] ["ID"].Value;
 			var jn = jsonNode [i];
-			var lastJn = lastJsonNode [i];
+
 			bool isUpdate = false;
 			if (isUpdateNeeded)
 			{
-				isUpdate = DateTime.ParseExact (jn ["UpdateTime"].Value, timeFormat, null) > DateTime.ParseExact (lastJn ["UpdateTime"].Value, timeFormat, null);
+				JSONNode lastJn = null;
+				for (int m = 0; m < lastJsonNode.Count; m++)
+				{
+					if (id == lastJsonNode [m] ["ID"].Value)
+					{
+						lastJn = lastJsonNode [m];
+						break;
+					}
+				}
+				if (lastJn == null)
+				{
+					isUpdate = true;
+				}
+				else
+				{
+					isUpdate = DateTime.ParseExact (jn ["UpdateTime"].Value, timeFormat, null) > DateTime.ParseExact (lastJn ["UpdateTime"].Value, timeFormat, null);
+				}
 			}
 			AssetData.Add (id, ASSET_TYPE.Name, null, jn);
 			for (int j = 0; j < sdCachePath.Length; j++)
