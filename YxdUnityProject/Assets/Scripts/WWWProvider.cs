@@ -9,6 +9,7 @@ using System.Net;
 public class WWWProvider : MonoBehaviour
 {
 	readonly string DownLoadURL = "http://ezlearn.kudospark.com/";
+	readonly string NoNetWorkURL = "http://52.221.227.248";
 	readonly string GetServerURL = "/app2016/interface.php?schoolid=ezlearn&method=";
 	string URL = "";
 	public static string RedirectURL = "";
@@ -43,12 +44,12 @@ public class WWWProvider : MonoBehaviour
 				}
 				if(RedirectURL == null || RedirectURL == "")
 				{
-					RedirectURL = "http://52.221.227.248";
+					RedirectURL = NoNetWorkURL;
 				}
 			}
 			catch (Exception e)
 			{
-				RedirectURL = "http://52.221.227.248";
+				RedirectURL = NoNetWorkURL;
 				Debug.LogError (string.Format ("StartWWWCommunication.GetRedirect Fail! Exception:{0}", e.Message));
 			}
 		}

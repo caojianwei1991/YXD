@@ -114,7 +114,7 @@ PlayerSettings:
   iOSLaunchScreenCustomXibPath: 
   AndroidTargetDevice: 3
   AndroidSplashScreenScale: 2
-  AndroidKeystoreName: F:/WorkSpace/YXD/YxdUnityProject/zany.keystore
+  AndroidKeystoreName: zany.keystore
   AndroidKeyaliasName: yxd
   resolutionDialogBanner: {fileID: 0}
   m_BuildTargetIcons:
