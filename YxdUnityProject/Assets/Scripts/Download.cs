@@ -124,7 +124,7 @@ public class Download : MonoBehaviour
 						}
 					}
 					var jsonClass = new JSONClass ();
-					jsonClass.Add ("CurrentDownloadURL", WWWProvider.RedirectURL);
+					jsonClass.Add ("CurrentDownloadURL", WWWProvider.DownLoadAssetURL);
 					jsonClass.Add ("AssetNum", _assetNum.ToString ());
 					jsonClass.Add ("LastUpdateTime", lastUpdateTime.ToString (timeFormat));
 					jsonClass.Add ("ArrayData", "ZhangYi");
@@ -155,6 +155,7 @@ public class Download : MonoBehaviour
 		StringBuilder sdFile = new StringBuilder ();
 		isDownLoadFail = false;
 		string currentDownloadURL = jsonNode ["CurrentDownloadURL"].Value;
+		string lastDownloadURL = lastJsonNode ["CurrentDownloadURL"].Value;
 		assetNum = jsonNode ["AssetNum"].AsFloat;
 		jsonNode = jsonNode ["ArrayData"];
 		if (isUpdateNeeded)
@@ -189,6 +190,7 @@ public class Download : MonoBehaviour
 					isUpdate = DateTime.ParseExact (jn ["UpdateTime"].Value, timeFormat, null) > DateTime.ParseExact (lastJn ["UpdateTime"].Value, timeFormat, null);
 				}
 			}
+			isUpdate = isUpdate || currentDownloadURL != lastDownloadURL;
 			AssetData.Add (id, ASSET_TYPE.Name, null, jn);
 			for (int j = 0; j < sdCachePath.Length; j++)
 			{

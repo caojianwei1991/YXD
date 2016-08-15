@@ -12,7 +12,8 @@ public class WWWProvider : MonoBehaviour
 	readonly string NoNetWorkURL = "http://52.221.227.248";
 	readonly string GetServerURL = "/app2016/interface.php?schoolid=ezlearn&method=";
 	string URL = "";
-	public static string RedirectURL = "";
+	string RedirectURL = "";
+	public static string DownLoadAssetURL = "";
 	static WWWProvider instance;
 
 	public static WWWProvider Instance
@@ -88,7 +89,11 @@ public class WWWProvider : MonoBehaviour
 			if (MethodName == "GetServerURL")
 			{
 				var jn = JSONNode.Parse (www.text);
-				URL = jn ["URL"].Value + "&method=";
+				string str = jn ["URL"].Value;
+				URL = str + "&method=";
+				str = str.Replace("http://", "");
+				string[] strs = str.Split('/');
+				DownLoadAssetURL = "http://" + strs[0];
 			}
 			if (OnSuccess != null)
 			{
