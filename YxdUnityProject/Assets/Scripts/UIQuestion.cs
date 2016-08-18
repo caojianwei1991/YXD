@@ -110,7 +110,7 @@ public class UIQuestion : MonoBehaviour
 		IsEnglish = !(mgc.jsonNode ["IsEnglish"].Value == "1");
 		mUILabel.gameObject.SetActive (mgc.jsonNode ["DisplayText"].AsBool);
 		Name = AssetData.GetNameByID (Character_ID, mgc.GameType == GAME_TYPE.LinkPicture ? !IsEnglish : IsEnglish);
-		mTexture = AssetData.GetImageByID (Character_ID);
+		MTexture = AssetData.GetImageByID (Character_ID);
 		mAnimation = StartAnimation (AssetData.GetAnimationImageByID (Character_ID));
 		StartCoroutine (mAnimation);
 		EventDelegate.Set (mUIButton.onClick, delegate
@@ -128,6 +128,10 @@ public class UIQuestion : MonoBehaviour
 
 	IEnumerator StartAnimation (List<Texture> textures)
 	{
+		if(textures.Count <= 0)
+		{
+			yield break;
+		}
 		while (gameObject.activeInHierarchy)
 		{
 			for (int i = 0; i < textures.Count; i++)
