@@ -5,7 +5,7 @@ using System;
 
 public class Login : MonoBehaviour
 {
-	UIInput inputSchoolID, inputUserName;
+	UIInput inputUserName, inputPassword;
 	UIToggle isSavePSW, cnUIToggle, enUIToggle;
 	WWWProvider wwwProvider;
 	UIButton btnExit, btnLogin, btnRandomPlay;
@@ -13,8 +13,8 @@ public class Login : MonoBehaviour
 	void Awake ()
 	{
 		wwwProvider = WWWProvider.Instance;
-		inputSchoolID = transform.FindChild ("InputSchoolID").GetComponent<UIInput> ();
 		inputUserName = transform.FindChild ("InputUserName").GetComponent<UIInput> ();
+		inputPassword = transform.FindChild ("InputPassword").GetComponent<UIInput> ();
 		isSavePSW = transform.FindChild ("RememberPSW").GetComponent<UIToggle> ();
 		cnUIToggle = transform.FindChild ("Chinese").GetComponent<UIToggle> ();
 		enUIToggle = transform.FindChild ("English").GetComponent<UIToggle> ();
@@ -34,8 +34,8 @@ public class Login : MonoBehaviour
 
 	void Start ()
 	{
-		inputSchoolID.value = PlayerPrefs.GetString ("InputSchoolID", "");
 		inputUserName.value = PlayerPrefs.GetString ("InputUserName", "");
+		inputPassword.value = PlayerPrefs.GetString ("InputPassword", "");
 		isSavePSW.value = PlayerPrefs.GetInt ("IsSavePSW", 1) == 1;
 		LocalStorage.Language = PlayerPrefs.GetString ("Language", "0");
 		if (LocalStorage.Language == "0")
@@ -70,13 +70,13 @@ public class Login : MonoBehaviour
 	
 	void StartLogin ()
 	{
-		if (inputSchoolID.value.Length < 1 || inputUserName.value.Length < 1)
+		if (inputUserName.value.Length < 1 || inputPassword.value.Length < 1)
 		{
-			Alert.Show ("你没有输入学校或用户\n名信息，是否返回输入");
+			SignUp.Show ();
 			return;
 		}
 		var jc = new JSONClass ();
-		jc.Add ("SchoolID", inputSchoolID.value);
+		jc.Add ("SchoolID", inputUserName.value);
 		jc.Add ("IPAddress", "52.221.227.248");
 		WWWProvider.Instance.StartWWWCommunication ("GetServerURL", jc, CheckUser);
 	}
@@ -85,7 +85,7 @@ public class Login : MonoBehaviour
 	{
 		var jc = new JSONClass ();
 		jc.Add ("StudentID", inputUserName.value);
-		jc.Add ("SchoolID", inputSchoolID.value);
+		jc.Add ("SchoolID", inputPassword.value);
 		WWWProvider.Instance.StartWWWCommunication ("CheckUser", jc, (x, y) =>
 		{
 			var jn = JSONNode.Parse (y);
@@ -104,11 +104,11 @@ public class Login : MonoBehaviour
 	void EnterQuizPlay ()
 	{
 		bool b = isSavePSW.value;
-		PlayerPrefs.SetString ("InputSchoolID", b ? inputSchoolID.value : "");
 		PlayerPrefs.SetString ("InputUserName", b ? inputUserName.value : "");
+		PlayerPrefs.SetString ("InputPassword", b ? inputPassword.value : "");
 		PlayerPrefs.SetInt ("IsSavePSW", b ? 1 : 0);
-		LocalStorage.SchoolID = inputSchoolID.value;
-		LocalStorage.StudentID = inputUserName.value;
+		LocalStorage.SchoolID = inputUserName.value;
+		LocalStorage.StudentID = inputPassword.value;
 		LocalStorage.Language = cnUIToggle.value ? "0" : "1";
 		PlayerPrefs.SetString ("Language", LocalStorage.Language);
 		Application.LoadLevel ("Download");
@@ -122,7 +122,7 @@ public class Login : MonoBehaviour
 
 	void RandomPlay ()
 	{
-		if (inputSchoolID.value.Length < 1 || inputUserName.value.Length < 1)
+		if (inputUserName.value.Length < 1 || inputPassword.value.Length < 1)
 		{
 			Alert.ShowInputInfo ((UserName, Email) =>
 			{
@@ -141,7 +141,7 @@ public class Login : MonoBehaviour
 			if (Application.internetReachability != NetworkReachability.NotReachable)
 			{
 				var jc = new JSONClass ();
-				jc.Add ("SchoolID", inputSchoolID.value);
+				jc.Add ("SchoolID", inputUserName.value);
 				jc.Add ("IPAddress", "52.221.227.248");
 				WWWProvider.Instance.StartWWWCommunication ("GetServerURL", jc, RandomPlayCheckUser);
 			}
@@ -156,7 +156,7 @@ public class Login : MonoBehaviour
 	{
 		var jc = new JSONClass ();
 		jc.Add ("StudentID", inputUserName.value);
-		jc.Add ("SchoolID", inputSchoolID.value);
+		jc.Add ("SchoolID", inputPassword.value);
 		WWWProvider.Instance.StartWWWCommunication ("CheckUser", jc, (x, y) =>
 		{
 			var jn = JSONNode.Parse (y);
