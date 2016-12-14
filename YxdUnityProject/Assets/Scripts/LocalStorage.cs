@@ -20,4 +20,8 @@ public class LocalStorage
 	public static bool IsSwitchBG = true;
 
 	public static bool IsTest { get; set; }
+
+	public static int SelectClassID { get; set; }
+
+	public static string SelectClassName { get; set; }
 }

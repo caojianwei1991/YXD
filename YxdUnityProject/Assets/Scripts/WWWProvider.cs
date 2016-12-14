@@ -9,7 +9,7 @@ using System.Net;
 public class WWWProvider : MonoBehaviour
 {
 	readonly string DownLoadURL = "http://ezlearn.kudospark.com/";
-	readonly string NoNetWorkURL = "http://52.221.227.248";
+	readonly string NoNetWorkURL = "http://123.207.9.191";
 	readonly string GetServerURL = "/app2016/interface.php?schoolid=ezlearn&method=";
 	string URL = "";
 	string RedirectURL = "";
@@ -34,25 +34,26 @@ public class WWWProvider : MonoBehaviour
 	{
 		if (RedirectURL == "")
 		{
-			try
-			{
-				HttpWebRequest myHttpWebRequest = (HttpWebRequest)HttpWebRequest.Create (DownLoadURL);
-				myHttpWebRequest.Referer = DownLoadURL;
-				myHttpWebRequest.AllowAutoRedirect = false;
-				using (WebResponse response = myHttpWebRequest.GetResponse())
-				{
-					RedirectURL = response.Headers ["Location"];
-				}
-				if(RedirectURL == null || RedirectURL == "")
-				{
-					RedirectURL = NoNetWorkURL;
-				}
-			}
-			catch (Exception e)
-			{
-				RedirectURL = NoNetWorkURL;
-				Debug.LogError (string.Format ("StartWWWCommunication.GetRedirect Fail! Exception:{0}", e.Message));
-			}
+			RedirectURL = NoNetWorkURL;
+//			try
+//			{
+//				HttpWebRequest myHttpWebRequest = (HttpWebRequest)HttpWebRequest.Create (DownLoadURL);
+//				myHttpWebRequest.Referer = DownLoadURL;
+//				myHttpWebRequest.AllowAutoRedirect = false;
+//				using (WebResponse response = myHttpWebRequest.GetResponse())
+//				{
+//					RedirectURL = response.Headers ["Location"];
+//				}
+//				if(RedirectURL == null || RedirectURL == "")
+//				{
+//					RedirectURL = NoNetWorkURL;
+//				}
+//			}
+//			catch (Exception e)
+//			{
+//				RedirectURL = NoNetWorkURL;
+//				Debug.LogError (string.Format ("StartWWWCommunication.GetRedirect Fail! Exception:{0}", e.Message));
+//			}
 		}
 		if (MethodName == "GetServerURL")
 		{

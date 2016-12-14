@@ -59,6 +59,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 451058}
   - 114: {fileID: 11451062}
+  - 114: {fileID: 11489330}
   m_Layer: 5
   m_Name: NameList
   m_TagString: Untagged
@@ -188,7 +189,7 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 2048, y: 1537, z: 0}
+  m_Size: {x: 2049, y: 1536, z: 0}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!65 &6551054
 BoxCollider:
@@ -287,7 +288,7 @@ MonoBehaviour:
   anchorOffset: 0
   softBorderPadding: 1
   renderQueue: 0
-  startingRenderQueue: 3013
+  startingRenderQueue: 3014
   mClipTexture: {fileID: 0}
   mAlpha: 1
   mClipping: 3
@@ -448,7 +449,7 @@ MonoBehaviour:
   anchorOffset: 0
   softBorderPadding: 1
   renderQueue: 0
-  startingRenderQueue: 3009
+  startingRenderQueue: 3010
   mClipTexture: {fileID: 0}
   mAlpha: 1
   mClipping: 0
@@ -487,8 +488,8 @@ MonoBehaviour:
   updateAnchors: 1
   mColor: {r: 1, g: 1, b: 1, a: 1}
   mPivot: 4
-  mWidth: 2048
-  mHeight: 1537
+  mWidth: 2049
+  mHeight: 1536
   mDepth: 0
   autoResizeBoxCollider: 1
   hideIfOffScreen: 0
@@ -590,6 +591,17 @@ MonoBehaviour:
   mAtlas: {fileID: 11456512, guid: 91bb282fbe46ad94e87601e49b37a2b5, type: 2}
   mSpriteName: "\u8FD4\u56DE"
   mFillCenter: 1
+--- !u!114 &11489330
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 151058}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29524d4ab3fa5e74cb0eaf0ce3685046, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &100100000
 Prefab:
   m_ObjectHideFlags: 1
