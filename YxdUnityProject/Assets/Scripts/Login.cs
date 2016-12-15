@@ -96,7 +96,7 @@ public class Login : MonoBehaviour
 			}
 			else
 			{
-				Alert.Show ("用户名或秘密错误，请重新输入！");
+				Alert.Show ("用户名或秘密错误，是否忘记密码？", () => ResetPassword.Show (), () => {});
 			}
 		});
 	}
