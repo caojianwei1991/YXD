@@ -11,7 +11,7 @@ public class WWWProvider : MonoBehaviour
 	readonly string DownLoadURL = "http://ezlearn.kudospark.com/";
 	readonly string NoNetWorkURL = "http://123.207.9.191";
 	readonly string GetServerURL = "/app2016/interface.php?schoolid=ezlearn&method=";
-	string URL = "";
+	string URL = "http://123.207.9.191:8080";
 	string RedirectURL = "";
 	public static string DownLoadAssetURL = "";
 	static WWWProvider instance;
@@ -65,15 +65,20 @@ public class WWWProvider : MonoBehaviour
 		}
 	}
 
-	public void StartWWWCommunication (string MethodName, JSONClass JsonClass, Action<bool, string> OnSuccess = null)
+	public void StartWWWCommunication (string MethodName, JSONClass wf, Action<bool, string> OnSuccess = null)
 	{
-		GetRedirectURL (MethodName);
-		StartCoroutine (WWWCommunication (MethodName, JsonClass, OnSuccess));
+
 	}
 
-	IEnumerator WWWCommunication (string MethodName, JSONClass JsonClass, Action<bool, string> OnSuccess)
+	public void StartWWWCommunication (string MethodName, WWWForm wf, Action<bool, string> OnSuccess = null)
 	{
-		WWW www = new WWW (URL + MethodName, UTF8Encoding.UTF8.GetBytes (JsonClass.ToString ()));
+		//GetRedirectURL (MethodName);
+		StartCoroutine (WWWCommunication (MethodName, wf, OnSuccess));
+	}
+
+	IEnumerator WWWCommunication (string MethodName, WWWForm wf, Action<bool, string> OnSuccess)
+	{
+		WWW www = new WWW (URL + MethodName, wf);
 		yield return www;
 		if (www.error != null)
 		{
@@ -92,9 +97,9 @@ public class WWWProvider : MonoBehaviour
 				var jn = JSONNode.Parse (www.text);
 				string str = jn ["URL"].Value;
 				URL = str + "&method=";
-				str = str.Replace("http://", "");
-				string[] strs = str.Split('/');
-				DownLoadAssetURL = "http://" + strs[0];
+				str = str.Replace ("http://", "");
+				string[] strs = str.Split ('/');
+				DownLoadAssetURL = "http://" + strs [0];
 			}
 			if (OnSuccess != null)
 			{

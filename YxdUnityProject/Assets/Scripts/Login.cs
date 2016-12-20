@@ -26,6 +26,7 @@ public class Login : MonoBehaviour
 		btnRandomPlay = transform.FindChild ("RandomPlay").GetComponent<UIButton> ();
 		btnRandomPlay.onClick.Add (new EventDelegate (() => RandomPlay ()));
 		cnUIToggle.onChange.Add (new EventDelegate (() => ChangeToggle ()));
+		transform.FindChild ("Instruction").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => TeacherLogin ()));
 		LocalStorage.SchoolID = "";
 		LocalStorage.StudentID = "";
 		LocalStorage.Score = 0;
@@ -37,7 +38,7 @@ public class Login : MonoBehaviour
 		inputUserName.value = PlayerPrefs.GetString ("InputUserName", "");
 		inputPassword.value = PlayerPrefs.GetString ("InputPassword", "");
 		isSavePSW.value = PlayerPrefs.GetInt ("IsSavePSW", 1) == 1;
-		LocalStorage.Language = PlayerPrefs.GetString ("Language", "0");
+		LocalStorage.Language = "0";//PlayerPrefs.GetString ("Language", "0");
 		if (LocalStorage.Language == "0")
 		{
 			cnUIToggle.value = true;
@@ -75,21 +76,13 @@ public class Login : MonoBehaviour
 			SignUp.Show ();
 			return;
 		}
-		var jc = new JSONClass ();
-		jc.Add ("SchoolID", inputUserName.value);
-		jc.Add ("IPAddress", "52.221.227.248");
-		WWWProvider.Instance.StartWWWCommunication ("GetServerURL", jc, CheckUser);
-	}
-
-	void CheckUser (bool IsSuccess, string JsonData)
-	{
-		var jc = new JSONClass ();
-		jc.Add ("StudentID", inputUserName.value);
-		jc.Add ("SchoolID", inputPassword.value);
-		WWWProvider.Instance.StartWWWCommunication ("CheckUser", jc, (x, y) =>
+		var wf = new WWWForm ();
+		wf.AddField ("StudentId", inputUserName.value.Trim ());
+		wf.AddField ("Password", inputPassword.value.Trim ());
+		WWWProvider.Instance.StartWWWCommunication ("/student/login", wf, (x, y) =>
 		{
 			var jn = JSONNode.Parse (y);
-			if (jn ["IsSuccess"].Value == "1")
+			if (jn ["result"].AsInt == 0)
 			{
 				LocalStorage.IsRandomPlay = false;
 				EnterQuizPlay ();
@@ -112,6 +105,36 @@ public class Login : MonoBehaviour
 		LocalStorage.Language = cnUIToggle.value ? "0" : "1";
 		PlayerPrefs.SetString ("Language", LocalStorage.Language);
 		Application.LoadLevel ("Download");
+	}
+
+	void TeacherLogin ()
+	{
+		Alert.ShowTeacherLogin ((UserName, Password) =>
+		{
+			if (UserName.Length > 0 && Password.Length > 0)
+			{
+				var wf = new WWWForm ();
+				wf.AddField ("StudentId", inputUserName.value.Trim ());
+				wf.AddField ("Password", inputPassword.value.Trim ());
+				WWWProvider.Instance.StartWWWCommunication ("/student/login", wf, (x, y) =>
+				{
+					var jn = JSONNode.Parse (y);
+					if (jn ["result"].AsInt == 0)
+					{
+						LocalStorage.IsRandomPlay = false;
+						EnterQuizPlay ();
+					}
+					else
+					{
+						Alert.Show ("用户名或秘密错误，是否忘记密码？", () => ResetPassword.Show (), () => {});
+					}
+				});
+			}
+			else
+			{
+				Alert.Show ("你没有输入用户名或密码，请重新输入！");
+			}
+		});
 	}
 
 	void Test ()

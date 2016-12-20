@@ -100,4 +100,31 @@ public class Alert : MonoBehaviour
 			}
 		});
 	}
+
+	public static void ShowTeacherLogin (Action<string, string> ok)
+	{
+		if (mTransform != null)
+		{
+			Destroy (mTransform.gameObject);
+		}
+		UIRoot uiRoot = GameObject.FindObjectOfType<UIRoot> ();
+		mTransform = NGUITools.AddChild (uiRoot.gameObject, (GameObject)Resources.Load ("Prefabs/TeacherLogin")).transform;
+		UIInput inputUserName = mTransform.FindChild ("Texture/InputUserName").GetComponent<UIInput> ();
+		UIInput inputPassword = mTransform.FindChild ("Texture/InputPassword").GetComponent<UIInput> ();
+		EventDelegate.Set (mTransform.FindChild ("Texture/Yes").GetComponent<UIButton> ().onClick, delegate
+		{
+			if (mTransform != null)
+			{
+				Destroy (mTransform.gameObject);
+			}
+			ok.Invoke (inputUserName.value, inputPassword.value);
+		});
+		EventDelegate.Set (mTransform.FindChild ("Texture/No").GetComponent<UIButton> ().onClick, delegate
+		{
+			if (mTransform != null)
+			{
+				Destroy (mTransform.gameObject);
+			}
+		});
+	}
 }
