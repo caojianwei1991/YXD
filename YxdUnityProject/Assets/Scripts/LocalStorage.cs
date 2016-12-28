@@ -1,8 +1,17 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+public enum  AccountType
+{
+	Student,
+	Teacher,
+	RandomPlay
+}
+
 public class LocalStorage
 {
+	public static AccountType accountType { get; set; }
+
 	public static string SchoolID { get; set; }
 
 	public static string StudentID { get; set; }

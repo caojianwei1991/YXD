@@ -93,6 +93,18 @@ public class MainGameController : MonoBehaviour
 		transform.FindChild ("Right").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => SwitchQuestion ()));
 
 		transform.FindChild ("Left").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => SwitchQuestion (true)));
+
+		transform.FindChild ("Practice").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => NameList.Show ()));
+
+		transform.FindChild ("FinishPractice").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
+		{
+
+		}));
+
+		transform.FindChild ("FinishClass").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
+		{
+
+		}));
 	}
 
 	void Start ()

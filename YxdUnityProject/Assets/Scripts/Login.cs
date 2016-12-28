@@ -26,7 +26,7 @@ public class Login : MonoBehaviour
 		btnRandomPlay = transform.FindChild ("RandomPlay").GetComponent<UIButton> ();
 		btnRandomPlay.onClick.Add (new EventDelegate (() => RandomPlay ()));
 		cnUIToggle.onChange.Add (new EventDelegate (() => ChangeToggle ()));
-		transform.FindChild ("Instruction").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => TeacherLogin ()));
+		transform.FindChild ("Instruction").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => TeacherLogin.Show ()));
 		LocalStorage.SchoolID = "";
 		LocalStorage.StudentID = "";
 		LocalStorage.Score = 0;
@@ -71,7 +71,7 @@ public class Login : MonoBehaviour
 	
 	void StartLogin ()
 	{
-		if (inputUserName.value.Length < 1 || inputPassword.value.Length < 1)
+		if (inputUserName.value.Trim ().Length < 1 || inputPassword.value.Trim ().Length < 1)
 		{
 			SignUp.Show ();
 			return;
@@ -84,8 +84,8 @@ public class Login : MonoBehaviour
 			var jn = JSONNode.Parse (y);
 			if (jn ["result"].AsInt == 0)
 			{
-				LocalStorage.IsRandomPlay = false;
-				EnterQuizPlay ();
+				LocalStorage.accountType = AccountType.Student;
+				Application.LoadLevel ("SelectScene");
 			}
 			else
 			{
@@ -97,44 +97,14 @@ public class Login : MonoBehaviour
 	void EnterQuizPlay ()
 	{
 		bool b = isSavePSW.value;
-		PlayerPrefs.SetString ("InputUserName", b ? inputUserName.value : "");
-		PlayerPrefs.SetString ("InputPassword", b ? inputPassword.value : "");
+		PlayerPrefs.SetString ("InputUserName", b ? inputUserName.value.Trim () : "");
+		PlayerPrefs.SetString ("InputPassword", b ? inputPassword.value.Trim () : "");
 		PlayerPrefs.SetInt ("IsSavePSW", b ? 1 : 0);
 		LocalStorage.SchoolID = inputUserName.value;
 		LocalStorage.StudentID = inputPassword.value;
 		LocalStorage.Language = cnUIToggle.value ? "0" : "1";
 		PlayerPrefs.SetString ("Language", LocalStorage.Language);
 		Application.LoadLevel ("Download");
-	}
-
-	void TeacherLogin ()
-	{
-		Alert.ShowTeacherLogin ((UserName, Password) =>
-		{
-			if (UserName.Length > 0 && Password.Length > 0)
-			{
-				var wf = new WWWForm ();
-				wf.AddField ("StudentId", inputUserName.value.Trim ());
-				wf.AddField ("Password", inputPassword.value.Trim ());
-				WWWProvider.Instance.StartWWWCommunication ("/student/login", wf, (x, y) =>
-				{
-					var jn = JSONNode.Parse (y);
-					if (jn ["result"].AsInt == 0)
-					{
-						LocalStorage.IsRandomPlay = false;
-						EnterQuizPlay ();
-					}
-					else
-					{
-						Alert.Show ("用户名或秘密错误，是否忘记密码？", () => ResetPassword.Show (), () => {});
-					}
-				});
-			}
-			else
-			{
-				Alert.Show ("你没有输入用户名或密码，请重新输入！");
-			}
-		});
 	}
 
 	void Test ()
@@ -145,6 +115,9 @@ public class Login : MonoBehaviour
 
 	void RandomPlay ()
 	{
+		LocalStorage.accountType = AccountType.RandomPlay;
+		Application.LoadLevel ("SelectScene");
+		return;
 		if (inputUserName.value.Length < 1 || inputPassword.value.Length < 1)
 		{
 			Alert.ShowInputInfo ((UserName, Email) =>

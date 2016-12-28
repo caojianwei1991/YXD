@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using SimpleJSON;
 
 public class ResetPassword : MonoBehaviour
 {
@@ -25,29 +26,63 @@ public class ResetPassword : MonoBehaviour
 	
 	void StartResetPassword ()
 	{
-		if (inputUserName.value.Length < 1 || inputNumber.value.Length < 1 || inputCode.value.Length < 1 || inputPassword.value.Length < 1 || inputConfirm.value.Length < 1)
+		if (inputUserName.value.Trim ().Length < 1 || inputNumber.value.Trim ().Length < 1 || inputCode.value.Trim ().Length < 1 || inputPassword.value.Trim ().Length < 1 || inputConfirm.value.Trim ().Length < 1)
 		{
-			Alert.Show ("信息填写不完整，请补充");
+			Alert.Show ("信息填写不完整，请补充！");
 			return;
 		}
 		if (inputPassword.value != inputConfirm.value)
 		{
-			Alert.Show ("两次新密码不一致，请重新输入");
+			Alert.Show ("两次新密码不一致，请重新输入！");
 			return;
 		}
-		
+		var wf = new WWWForm ();
+		wf.AddField ("StudentId", inputNumber.value.Trim ());
+		wf.AddField ("Password", inputPassword.value.Trim ());
+		wf.AddField ("VerificationCode", inputCode.value.Trim ());
+		WWWProvider.Instance.StartWWWCommunication ("/student/resetpassword", wf, (x, y) =>
+		{
+			var jn = JSONNode.Parse (y);
+			if (jn ["result"].AsInt == 0)
+			{
+//				LocalStorage.IsRandomPlay = false;
+//				EnterQuizPlay ();
+			}
+			else
+			{
+				Alert.Show ("密码重置失败，请重新重置！");
+			}
+		});
 	}
 	
 	void GetCode ()
 	{
-		if (inputNumber.value.Length != 11)
+		if (inputNumber.value.Trim ().Length != 11)
 		{
-			Alert.Show ("手机号位数不对，请重新输入");
+			Alert.Show ("手机号位数不对，请重新输入！");
 			return;
 		}
 		mButton.isEnabled = false;
-		remainingTime = 5;
+		remainingTime = 60;
 		InvokeRepeating ("RefreshRemainTime", 0, 1);
+		var wf = new WWWForm ();
+		wf.AddField ("PhoneNumber", inputNumber.value.Trim ());
+		WWWProvider.Instance.StartWWWCommunication ("/mobile/validationCode", wf, (x, y) =>
+		{
+			var jn = JSONNode.Parse (y);
+			if (jn ["result"].AsInt == 0)
+			{
+				LocalStorage.accountType = AccountType.Student;
+				Application.LoadLevel ("SelectScene");
+			}
+			else
+			{
+				Alert.Show ("获取验证码失败，请重新获取！");
+				mLabel.text = "获取验证码";
+				mButton.isEnabled = true;
+				CancelInvoke ("RefreshRemainTime");
+			}
+		});
 	}
 	
 	void RefreshRemainTime ()
