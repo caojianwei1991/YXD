@@ -32,7 +32,6 @@ public class SelectScene : MonoBehaviour
 			Application.LoadLevel ("Orchard");
 		}));
 
-		transform.FindChild ("Instruction").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => ClassList.Show ()));
 	}
 
 	void RequestAboutContent ()

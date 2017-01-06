@@ -11,9 +11,9 @@ public class WWWProvider : MonoBehaviour
 	readonly string DownLoadURL = "http://ezlearn.kudospark.com/";
 	readonly string NoNetWorkURL = "http://123.207.9.191";
 	readonly string GetServerURL = "/app2016/interface.php?schoolid=ezlearn&method=";
-	string URL = "http://123.207.9.191:8080";
+	string URL = "http://123.207.9.191:8080/ezlearn-appservice";
 	string RedirectURL = "";
-	public static string DownLoadAssetURL = "";
+	public static string DownLoadAssetURL = "http://123.207.9.191:8080/ezlearn-appservice";
 	static WWWProvider instance;
 
 	public static WWWProvider Instance
@@ -78,6 +78,7 @@ public class WWWProvider : MonoBehaviour
 
 	IEnumerator WWWCommunication (string MethodName, WWWForm wf, Action<bool, string> OnSuccess)
 	{
+		Debug.LogError(URL + MethodName);
 		WWW www = new WWW (URL + MethodName, wf);
 		yield return www;
 		if (www.error != null)

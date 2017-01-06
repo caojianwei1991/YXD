@@ -82,8 +82,12 @@ public class Login : MonoBehaviour
 		WWWProvider.Instance.StartWWWCommunication ("/student/login", wf, (x, y) =>
 		{
 			var jn = JSONNode.Parse (y);
-			if (jn ["result"].AsInt == 0)
+			if (jn ["result"].AsInt == 1)
 			{
+				bool b = isSavePSW.value;
+				PlayerPrefs.SetString ("InputUserName", b ? inputUserName.value.Trim () : "");
+				PlayerPrefs.SetString ("InputPassword", b ? inputPassword.value.Trim () : "");
+				PlayerPrefs.SetInt ("IsSavePSW", b ? 1 : 0);
 				LocalStorage.accountType = AccountType.Student;
 				Application.LoadLevel ("SelectScene");
 			}

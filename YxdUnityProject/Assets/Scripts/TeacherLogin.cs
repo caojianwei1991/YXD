@@ -31,7 +31,7 @@ public class TeacherLogin : MonoBehaviour
 			WWWProvider.Instance.StartWWWCommunication ("/teacher/login", wf, (x, y) =>
 			{
 				var jn = JSONNode.Parse (y);
-				if (jn ["result"].AsInt == 0)
+				if (jn ["result"].AsInt == 1)
 				{
 					LocalStorage.accountType = AccountType.Teacher;
 					ClassList.Show ();

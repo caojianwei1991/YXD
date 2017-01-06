@@ -66,28 +66,27 @@ public class Download : MonoBehaviour
 	void UpdateCharactersInfo ()
 	{
 		isUpdateNeeded = false;
-		if ((LocalStorage.IsRandomPlay && LocalStorage.StudentID == "") || Application.internetReachability == NetworkReachability.NotReachable)
+		if (Application.internetReachability == NetworkReachability.NotReachable)
 		{
 			StartCoroutine (DealDownLoadData ());
 		}
 		else
 		{
-			var jc = new JSONClass ();
-			jc.Add ("UpdateTime", jsonNode ["LastUpdateTime"].Value);
-			jc.Add ("SchoolID", LocalStorage.SchoolID);
-			WWWProvider.Instance.StartWWWCommunication ("UpdateCharactersInfo", jc, DownLoadCharactersInfo);
+			var wf = new WWWForm ();
+			wf.AddField ("DateTime", jsonNode ["LastUpdateTime"].Value);
+			WWWProvider.Instance.StartWWWCommunication ("/character/updateCheck", wf, DownLoadCharactersInfo);
 		}
 	}
 
 	void DownLoadCharactersInfo (bool IsSuccess, string JsonData)
 	{
 		var jn = JSONNode.Parse (JsonData);
-		isUpdateNeeded = jn ["UpdateNeeded"].Value == "1";
+		isUpdateNeeded = jn ["result"].Value == "1";
 		if (isUpdateNeeded)
 		{
-			var jc = new JSONClass ();
-			jc.Add ("UpdateTime", jsonNode ["LastUpdateTime"].Value);
-			WWWProvider.Instance.StartWWWCommunication ("DownLoadCharactersInfo", jc, (x , y) =>
+			var wf = new WWWForm ();
+			wf.AddField ("IsAll", "0");
+			WWWProvider.Instance.StartWWWCommunication ("/character/download", wf, (x , y) =>
 			{
 				try
 				{

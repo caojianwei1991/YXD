@@ -94,14 +94,20 @@ public class MainGameController : MonoBehaviour
 
 		transform.FindChild ("Left").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => SwitchQuestion (true)));
 
-		transform.FindChild ("Practice").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => NameList.Show ()));
+		var tran = transform.FindChild ("Practice");
+		tran.gameObject.SetActive(LocalStorage.accountType == AccountType.Teacher);
+		tran.GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => NameList.Show ()));
 
-		transform.FindChild ("FinishPractice").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
+		tran = transform.FindChild ("FinishPractice");
+		tran.gameObject.SetActive(LocalStorage.accountType == AccountType.Teacher);
+		tran.GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
 		{
 
 		}));
 
-		transform.FindChild ("FinishClass").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
+		tran = transform.FindChild ("FinishClass");
+		tran.gameObject.SetActive(LocalStorage.accountType == AccountType.Teacher);
+		tran.GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
 		{
 
 		}));
@@ -493,21 +499,7 @@ public class MainGameController : MonoBehaviour
 
 	void GetQuestions ()
 	{
-		if (LocalStorage.IsRandomPlay)
-		{
-			if (LocalStorage.StudentID == "")
-			{
-				LocalRandomQuestions ();
-			}
-			else
-			{
-				ServerRandomQuestions ();
-			}
-		}
-		else
-		{
-			ServerRandomQuestions ();
-		}
+		ServerRandomQuestions ();
 	}
 
 	void LocalRandomQuestions ()
@@ -566,7 +558,7 @@ public class MainGameController : MonoBehaviour
 	
 	void ServerRandomQuestions ()
 	{
-		string gameName = "GetRandomQuestions";
+		string gameName = "/question/randomList";
 		if (Application.internetReachability != NetworkReachability.NotReachable)
 		{
 			isRandomQuestion = true;
@@ -574,7 +566,7 @@ public class MainGameController : MonoBehaviour
 			jc.Add ("StudentID", LocalStorage.StudentID);
 			jc.Add ("SceneID", LocalStorage.SceneID);
 			jc.Add ("QuestionNumber", questionNumber);
-			if (!LocalStorage.IsRandomPlay)
+			if (LocalStorage.accountType != AccountType.RandomPlay)
 			{
 				jc.Add ("QuestionPos", currentQuestionPos.ToString ());
 				jc.Add ("QuestionOrder", questionOrder);

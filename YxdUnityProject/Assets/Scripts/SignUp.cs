@@ -8,6 +8,7 @@ public class SignUp : MonoBehaviour
 	UILabel mLabel;
 	UIButton mButton;
 	int remainingTime = 60;
+	string validationCode;
 
 	public static void Show ()
 	{
@@ -36,6 +37,11 @@ public class SignUp : MonoBehaviour
 			Alert.Show ("两次密码不一致，请重新输入！");
 			return;
 		}
+		if (validationCode != inputCode.value.Trim ())
+		{
+			Alert.Show ("验证码不正确，请重新输入！");
+			return;
+		}
 		var wf = new WWWForm ();
 		wf.AddField ("StudentId", inputNumber.value.Trim ());
 		wf.AddField ("Password", inputPassword.value.Trim ());
@@ -43,7 +49,7 @@ public class SignUp : MonoBehaviour
 		WWWProvider.Instance.StartWWWCommunication ("/student/login", wf, (x, y) =>
 		{
 			var jn = JSONNode.Parse (y);
-			if (jn ["result"].AsInt == 0)
+			if (jn ["result"].AsInt == 1)
 			{
 				LocalStorage.accountType = AccountType.Student;
 				Application.LoadLevel ("SelectScene");
@@ -53,6 +59,7 @@ public class SignUp : MonoBehaviour
 				Alert.Show ("注册失败，请重新注册！");
 			}
 		});
+		Destroy (gameObject);
 	}
 
 	void GetCode ()
@@ -62,17 +69,18 @@ public class SignUp : MonoBehaviour
 			Alert.Show ("手机号位数不对，请重新输入！");
 			return;
 		}
+		validationCode = "";
 		mButton.isEnabled = false;
 		remainingTime = 60;
 		InvokeRepeating ("RefreshRemainTime", 0, 1);
 		var wf = new WWWForm ();
 		wf.AddField ("PhoneNumber", inputNumber.value.Trim ());
-		WWWProvider.Instance.StartWWWCommunication ("/mobile/validationCode", wf, (x, y) =>
+		WWWProvider.Instance.StartWWWCommunication ("/sms/validationCode", wf, (x, y) =>
 		{
 			var jn = JSONNode.Parse (y);
-			if (jn ["result"].AsInt == 0)
+			if (jn ["result"].AsInt == 1)
 			{
-
+				validationCode = jn ["data"] ["content"].Value.Trim ();
 			}
 			else
 			{

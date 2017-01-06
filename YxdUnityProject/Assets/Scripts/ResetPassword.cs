@@ -8,6 +8,7 @@ public class ResetPassword : MonoBehaviour
 	UILabel mLabel;
 	UIButton mButton;
 	int remainingTime = 60;
+	string validationCode;
 	
 	public static void Show ()
 	{
@@ -43,10 +44,9 @@ public class ResetPassword : MonoBehaviour
 		WWWProvider.Instance.StartWWWCommunication ("/student/resetpassword", wf, (x, y) =>
 		{
 			var jn = JSONNode.Parse (y);
-			if (jn ["result"].AsInt == 0)
+			if (jn ["result"].AsInt == 1)
 			{
-//				LocalStorage.IsRandomPlay = false;
-//				EnterQuizPlay ();
+				Alert.Show ("密码重置成功，请重新登录！", () => Destroy (gameObject));
 			}
 			else
 			{
@@ -62,6 +62,7 @@ public class ResetPassword : MonoBehaviour
 			Alert.Show ("手机号位数不对，请重新输入！");
 			return;
 		}
+		validationCode = "";
 		mButton.isEnabled = false;
 		remainingTime = 60;
 		InvokeRepeating ("RefreshRemainTime", 0, 1);
@@ -70,10 +71,9 @@ public class ResetPassword : MonoBehaviour
 		WWWProvider.Instance.StartWWWCommunication ("/mobile/validationCode", wf, (x, y) =>
 		{
 			var jn = JSONNode.Parse (y);
-			if (jn ["result"].AsInt == 0)
+			if (jn ["result"].AsInt == 1)
 			{
-				LocalStorage.accountType = AccountType.Student;
-				Application.LoadLevel ("SelectScene");
+				validationCode = jn ["data"] ["content"].Value.Trim ();
 			}
 			else
 			{
