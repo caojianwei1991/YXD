@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using SimpleJSON;
 
 public class ClassList : MonoBehaviour
 {
@@ -19,30 +20,44 @@ public class ClassList : MonoBehaviour
 
 	void Start ()
 	{
-		RefreshClassName ();
+		var wf = new WWWForm ();
+		wf.AddField ("TeacherId", LocalStorage.TeacherID);
+		WWWProvider.Instance.StartWWWCommunication ("/grade/listByTeacher", wf, (x, y) =>
+		{
+			var jn = JSONNode.Parse (y);
+			if (jn ["result"].AsInt == 1)
+			{
+				RefreshClassName (jn ["data"]);
+			}
+			else
+			{
+				Debug.LogError ("Get ClassList Fail!");
+			}
+		});
 	}
 
-	void RefreshClassName ()
+	void RefreshClassName (JSONNode jsonNode)
 	{
 		for (int i = 0; i < scrollView.transform.childCount; i++)
 		{
 			Destroy (scrollView.transform.GetChild (i).gameObject);
 		}
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < jsonNode.Count; i++)
 		{
+			int index = i;
 			var tran = NGUITools.AddChild (scrollView, (GameObject)Resources.Load ("Prefabs/ClassListItem")).transform;
-			tran.FindChild ("Label").GetComponent<UILabel> ().text = "123";
+			tran.FindChild ("Label").GetComponent<UILabel> ().text = jsonNode [index] ["name"].Value;
 			UIButton ub = tran.GetComponent<UIButton> ();
 			ub.onClick.Clear ();
 			ub.onClick.Add (new EventDelegate (() => 
 			{
-				LocalStorage.SelectClassID = 0;
-				LocalStorage.SelectClassName = "123";
+				LocalStorage.SelectClassID = jsonNode [index] ["id"].AsInt;
+				LocalStorage.SelectClassName = jsonNode [index] ["name"].Value;
 				NameList.Show ();
 				Destroy (gameObject);
 			}));
 		}
-		for (int i = 0; i < 30 - 2; i++)
+		for (int i = 0; i < 30 - jsonNode.Count; i++)
 		{
 			Transform tran = NGUITools.AddChild (scrollView, (GameObject)Resources.Load ("Prefabs/ClassListItem")).transform;
 			tran.GetComponent<UIWidget> ().alpha = 0;

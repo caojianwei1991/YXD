@@ -19,6 +19,8 @@ public class TeacherLogin : MonoBehaviour
 		inputPassword = transform.FindChild ("Texture/InputPassword").GetComponent<UIInput> ();
 		transform.FindChild ("Texture/No").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => Destroy (gameObject)));
 		transform.FindChild ("Texture/Yes").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => Login ()));
+		inputUserName.value = PlayerPrefs.GetString ("InputUserName", "");
+		inputPassword.value = PlayerPrefs.GetString ("InputPassword", "");
 	}
 	
 	void Login ()
@@ -27,13 +29,15 @@ public class TeacherLogin : MonoBehaviour
 		{
 			var wf = new WWWForm ();
 			wf.AddField ("TeacherId", inputUserName.value.Trim ());
-			wf.AddField ("Password", inputPassword.value.Trim ());
+			wf.AddField ("Password", WWWProvider.GetMD5 (inputPassword.value.Trim ()));
 			WWWProvider.Instance.StartWWWCommunication ("/teacher/login", wf, (x, y) =>
 			{
+				Destroy (gameObject);
 				var jn = JSONNode.Parse (y);
 				if (jn ["result"].AsInt == 1)
 				{
 					LocalStorage.accountType = AccountType.Teacher;
+					LocalStorage.TeacherID = jn ["data"] ["id"].AsInt;
 					ClassList.Show ();
 				}
 				else

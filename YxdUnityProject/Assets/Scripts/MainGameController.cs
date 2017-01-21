@@ -563,9 +563,9 @@ public class MainGameController : MonoBehaviour
 		{
 			isRandomQuestion = true;
 			var jc = new JSONClass ();
-			jc.Add ("StudentID", LocalStorage.StudentID);
-			jc.Add ("SceneID", LocalStorage.SceneID);
-			jc.Add ("QuestionNumber", questionNumber);
+//			jc.Add ("StudentID", LocalStorage.StudentID);
+//			jc.Add ("SceneID", LocalStorage.SceneID);
+//			jc.Add ("QuestionNumber", questionNumber);
 			if (LocalStorage.accountType != AccountType.RandomPlay)
 			{
 				jc.Add ("QuestionPos", currentQuestionPos.ToString ());
@@ -747,17 +747,17 @@ public class MainGameController : MonoBehaviour
 		if (isRandomQuestion)
 		{
 			submitType = IsTotal ? "SubmitUserTotalLogs" : "SubmitUserLogs";
-			string UserID = LocalStorage.StudentID;
-			if (UserID == "")
-			{
-				UserID = SystemInfo.deviceUniqueIdentifier;
-			}
-			jc.Add ("UserID", UserID);
+//			string UserID = LocalStorage.StudentID;
+//			if (UserID == "")
+//			{
+//				UserID = SystemInfo.deviceUniqueIdentifier;
+//			}
+//			jc.Add ("UserID", UserID);
 		}
 		else
 		{
 			submitType = IsTotal ? "SubmitStudentTotalLogs" : "SubmitStudentLogs";
-			jc.Add ("StudentID", LocalStorage.StudentID);
+			//jc.Add ("StudentID", LocalStorage.StudentID);
 			if (!IsTotal)
 			{
 				jc.Add ("QuizID", jsonNode ["QuizID"].Value);

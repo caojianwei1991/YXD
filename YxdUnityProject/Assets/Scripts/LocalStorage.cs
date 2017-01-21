@@ -14,7 +14,9 @@ public class LocalStorage
 
 	public static string SchoolID { get; set; }
 
-	public static string StudentID { get; set; }
+	public static int StudentID { get; set; }
+
+	public static int TeacherID { get; set; }
 
 	public static string SceneID { get; set; }
 

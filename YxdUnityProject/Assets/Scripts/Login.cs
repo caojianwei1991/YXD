@@ -28,7 +28,7 @@ public class Login : MonoBehaviour
 		cnUIToggle.onChange.Add (new EventDelegate (() => ChangeToggle ()));
 		transform.FindChild ("Instruction").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => TeacherLogin.Show ()));
 		LocalStorage.SchoolID = "";
-		LocalStorage.StudentID = "";
+		//LocalStorage.StudentID = "";
 		LocalStorage.Score = 0;
 		LocalStorage.IsTest = false;
 	}
@@ -78,7 +78,7 @@ public class Login : MonoBehaviour
 		}
 		var wf = new WWWForm ();
 		wf.AddField ("StudentId", inputUserName.value.Trim ());
-		wf.AddField ("Password", inputPassword.value.Trim ());
+		wf.AddField ("Password", WWWProvider.GetMD5 (inputPassword.value.Trim ()));
 		WWWProvider.Instance.StartWWWCommunication ("/student/login", wf, (x, y) =>
 		{
 			var jn = JSONNode.Parse (y);
@@ -89,6 +89,7 @@ public class Login : MonoBehaviour
 				PlayerPrefs.SetString ("InputPassword", b ? inputPassword.value.Trim () : "");
 				PlayerPrefs.SetInt ("IsSavePSW", b ? 1 : 0);
 				LocalStorage.accountType = AccountType.Student;
+				LocalStorage.StudentID = jn ["data"] ["studentId"].AsInt;
 				Application.LoadLevel ("SelectScene");
 			}
 			else
@@ -105,7 +106,7 @@ public class Login : MonoBehaviour
 		PlayerPrefs.SetString ("InputPassword", b ? inputPassword.value.Trim () : "");
 		PlayerPrefs.SetInt ("IsSavePSW", b ? 1 : 0);
 		LocalStorage.SchoolID = inputUserName.value;
-		LocalStorage.StudentID = inputPassword.value;
+		//LocalStorage.StudentID = inputPassword.value;
 		LocalStorage.Language = cnUIToggle.value ? "0" : "1";
 		PlayerPrefs.SetString ("Language", LocalStorage.Language);
 		Application.LoadLevel ("Download");
@@ -186,7 +187,7 @@ public class Login : MonoBehaviour
 				var jn = JSONNode.Parse (y);
 				if (jn ["IsSuccess"].Value == "1")
 				{
-					LocalStorage.StudentID = UserName;
+					//LocalStorage.StudentID = UserName;
 					LocalStorage.Email = Email;
 					EnterRandomPlay ();
 				}

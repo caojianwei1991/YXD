@@ -98,33 +98,33 @@ public class Share : MonoBehaviour
 	void Start ()
 	{
 		var jc = new JSONClass ();
-		string UserID = LocalStorage.StudentID;
-		if (UserID == "")
-		{
-			UserID = SystemInfo.deviceUniqueIdentifier;
-		}
-		string SchoolID = LocalStorage.SchoolID;
-		if (SchoolID == "")
-		{
-			SchoolID = "kudospark";
-		}
-		jc.Add ("UserID", UserID);
-		jc.Add ("SchoolID", SchoolID);
-		jc.Add ("APPStatus", LocalStorage.SchoolID == "" ? "1" : "0");
-		WWWProvider.Instance.StartWWWCommunication ("GetShareText", jc, (x, y) =>
-		{
-			var jn = JSONNode.Parse (y);
-			transform.FindChild ("Texture/Label").GetComponent<UILabel> ().text = text = jn ["shareText"].Value;
-		});
-		var jc1 = new JSONClass ();
-		jc1.Add ("StudentID", UserID);
-		WWWProvider.Instance.StartWWWCommunication ("GetStudentInfo", jc1, (x, y) =>
-		{
-			var jn = JSONNode.Parse (y);
-			if(jn ["StudentName"].Value != "null")
-			{
-				transform.FindChild ("Texture/Name").GetComponent<UILabel> ().text = jn ["StudentName"].Value;
-			}
-		});
+//		string UserID = LocalStorage.StudentID;
+//		if (UserID == "")
+//		{
+//			UserID = SystemInfo.deviceUniqueIdentifier;
+//		}
+//		string SchoolID = LocalStorage.SchoolID;
+//		if (SchoolID == "")
+//		{
+//			SchoolID = "kudospark";
+//		}
+//		jc.Add ("UserID", UserID);
+//		jc.Add ("SchoolID", SchoolID);
+//		jc.Add ("APPStatus", LocalStorage.SchoolID == "" ? "1" : "0");
+//		WWWProvider.Instance.StartWWWCommunication ("GetShareText", jc, (x, y) =>
+//		{
+//			var jn = JSONNode.Parse (y);
+//			transform.FindChild ("Texture/Label").GetComponent<UILabel> ().text = text = jn ["shareText"].Value;
+//		});
+//		var jc1 = new JSONClass ();
+//		jc1.Add ("StudentID", UserID);
+//		WWWProvider.Instance.StartWWWCommunication ("GetStudentInfo", jc1, (x, y) =>
+//		{
+//			var jn = JSONNode.Parse (y);
+//			if(jn ["StudentName"].Value != "null")
+//			{
+//				transform.FindChild ("Texture/Name").GetComponent<UILabel> ().text = jn ["StudentName"].Value;
+//			}
+//		});
 	}
 }

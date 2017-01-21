@@ -78,7 +78,7 @@ public class WWWProvider : MonoBehaviour
 
 	IEnumerator WWWCommunication (string MethodName, WWWForm wf, Action<bool, string> OnSuccess)
 	{
-		Debug.LogError(URL + MethodName);
+		Debug.LogError (URL + MethodName);
 		WWW www = new WWW (URL + MethodName, wf);
 		yield return www;
 		if (www.error != null)
@@ -121,5 +121,19 @@ public class WWWProvider : MonoBehaviour
 	{
 		SoundPlay.Instance.PlayLocal (23, LocalStorage.Language == "1");
 		Alert.Show ("是否要退出游戏？", () => Application.Quit (), () => {});
+	}
+
+	public static string GetMD5 (string s)
+	{
+		System.Security.Cryptography.MD5 md5 = new System.Security.Cryptography.MD5CryptoServiceProvider ();            
+		byte[] bytes = System.Text.Encoding.UTF8.GetBytes (s);
+		bytes = md5.ComputeHash (bytes);
+		md5.Clear ();
+		string ret = "";
+		for (int i = 0; i < bytes.Length; i++)
+		{
+			ret += Convert.ToString (bytes [i], 16).PadLeft (2, '0');
+		}
+		return ret.PadLeft (32, '0');
 	}
 }

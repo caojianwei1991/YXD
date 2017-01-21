@@ -48,6 +48,7 @@ public class SignUp : MonoBehaviour
 		wf.AddField ("VerificationCode", inputCode.value.Trim ());
 		WWWProvider.Instance.StartWWWCommunication ("/student/login", wf, (x, y) =>
 		{
+			Destroy (gameObject);
 			var jn = JSONNode.Parse (y);
 			if (jn ["result"].AsInt == 1)
 			{
@@ -59,7 +60,6 @@ public class SignUp : MonoBehaviour
 				Alert.Show ("注册失败，请重新注册！");
 			}
 		});
-		Destroy (gameObject);
 	}
 
 	void GetCode ()

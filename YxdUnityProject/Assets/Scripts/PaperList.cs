@@ -2,14 +2,14 @@
 using System.Collections;
 using SimpleJSON;
 
-public class NameList : MonoBehaviour
+public class PaperList : MonoBehaviour
 {
 	GameObject scrollView;
 
 	public static void Show ()
 	{
 		UIRoot uiRoot = GameObject.FindObjectOfType<UIRoot> ();
-		NGUITools.AddChild (uiRoot.gameObject, (GameObject)Resources.Load ("Prefabs/NameList"));
+		NGUITools.AddChild (uiRoot.gameObject, (GameObject)Resources.Load ("Prefabs/PaperList"));
 	}
 
 	void Awake ()
@@ -26,17 +26,19 @@ public class NameList : MonoBehaviour
 	{
 		transform.FindChild ("Sprite/Label").GetComponent<UILabel> ().text = LocalStorage.SelectClassName;
 		var wf = new WWWForm ();
+		wf.AddField ("TestType", 1);
+		wf.AddField ("StudentId", LocalStorage.StudentID);
 		wf.AddField ("GradeId", LocalStorage.SelectClassID);
-		WWWProvider.Instance.StartWWWCommunication ("/student/listByGrade", wf, (x, y) =>
+		WWWProvider.Instance.StartWWWCommunication ("/paper/list", wf, (x, y) =>
 		{
 			var jn = JSONNode.Parse (y);
 			if (jn ["result"].AsInt == 1)
 			{
-				//RefreshClassName (jn ["data"]);
+				RefreshClassName (jn ["data"]);
 			}
 			else
 			{
-				Debug.LogError ("Get ClassList Fail!");
+				Debug.LogError ("Get PaperList Fail!");
 			}
 		});
 	}
@@ -47,22 +49,19 @@ public class NameList : MonoBehaviour
 		{
 			Destroy (scrollView.transform.GetChild (i).gameObject);
 		}
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < jsonNode.Count; i++)
 		{
+			int index = i;
 			var tran = NGUITools.AddChild (scrollView, (GameObject)Resources.Load ("Prefabs/NameListItem")).transform;
-			tran.FindChild ("Label").GetComponent<UILabel> ().text = "123";
+			tran.FindChild ("Label").GetComponent<UILabel> ().text = jsonNode [index] ["name"].Value;
 			UIButton ub = tran.GetComponent<UIButton> ();
-			if (true)
-			{
-				ub.normalSprite = "桌子-p";
-			}
 			ub.onClick.Clear ();
 			ub.onClick.Add (new EventDelegate (() => 
 			{
 
 			}));
 		}
-		for (int i = 0; i < 30 - 2; i++)
+		for (int i = 0; i < 30 - jsonNode.Count; i++)
 		{
 			Transform tran = NGUITools.AddChild (scrollView, (GameObject)Resources.Load ("Prefabs/NameListItem")).transform;
 			tran.GetComponent<UIWidget> ().alpha = 0;
