@@ -67,8 +67,8 @@ public class AssetData
 				ad.AnimationImages.Add (www.texture);
 				break;
 			case ASSET_TYPE.Name:
-				ad.ChineseName = JsonNode ["ChineseName"].Value;
-				ad.EnglishName = JsonNode ["EnglishName"].Value;
+				ad.ChineseName = JsonNode ["chineseName"].Value;
+				ad.EnglishName = JsonNode ["englishName"].Value;
 				ad.SceneID = JsonNode ["SceneID"].Value;
 				break;
 			default:

@@ -19,8 +19,8 @@ public class TeacherLogin : MonoBehaviour
 		inputPassword = transform.FindChild ("Texture/InputPassword").GetComponent<UIInput> ();
 		transform.FindChild ("Texture/No").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => Destroy (gameObject)));
 		transform.FindChild ("Texture/Yes").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => Login ()));
-		inputUserName.value = PlayerPrefs.GetString ("InputUserName", "");
-		inputPassword.value = PlayerPrefs.GetString ("InputPassword", "");
+		inputUserName.value = PlayerPrefs.GetString ("InputTeacherUserName", "");
+		inputPassword.value = PlayerPrefs.GetString ("InputTeacherPassword", "");
 	}
 	
 	void Login ()
@@ -38,7 +38,9 @@ public class TeacherLogin : MonoBehaviour
 				{
 					LocalStorage.accountType = AccountType.Teacher;
 					LocalStorage.TeacherID = jn ["data"] ["id"].AsInt;
-					ClassList.Show ();
+					PlayerPrefs.SetString ("InputTeacherUserName", inputUserName.value.Trim ());
+					PlayerPrefs.SetString ("InputTeacherPassword", inputPassword.value.Trim ());
+					Application.LoadLevel ("SelectScene");
 				}
 				else
 				{

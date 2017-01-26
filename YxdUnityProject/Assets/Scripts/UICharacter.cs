@@ -77,7 +77,7 @@ public class UICharacter : MonoBehaviour
 		}
 		mAnimation = StartAnimation ();
 		StartCoroutine (mAnimation);
-		IsEnglish = mgc.jsonNode ["IsEnglish"].Value == "1";
+		IsEnglish = mgc.GetCurrentQuestion.isEnglish;
 		SoundPlay.Instance.PlayLocal (mgc.characterSoundID, IsEnglish, () =>
 		{
 			if (IsLiaison)

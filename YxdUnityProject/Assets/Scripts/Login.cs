@@ -89,7 +89,7 @@ public class Login : MonoBehaviour
 				PlayerPrefs.SetString ("InputPassword", b ? inputPassword.value.Trim () : "");
 				PlayerPrefs.SetInt ("IsSavePSW", b ? 1 : 0);
 				LocalStorage.accountType = AccountType.Student;
-				LocalStorage.StudentID = jn ["data"] ["studentId"].AsInt;
+				LocalStorage.StudentID = jn ["data"] ["id"].AsInt;
 				Application.LoadLevel ("SelectScene");
 			}
 			else

@@ -14,22 +14,26 @@ public class PaperList : MonoBehaviour
 
 	void Awake ()
 	{
-		transform.FindChild ("Back").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
+		transform.FindChild ("Close").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
 		{
-			ClassList.Show ();
 			Destroy (gameObject);
+			if (LocalStorage.accountType == AccountType.Teacher)
+			{
+				ClassList.Show ();
+			}
 		}));
 		scrollView = transform.FindChild ("ScrollView").gameObject;
 	}
 
 	void Start ()
 	{
-		transform.FindChild ("Sprite/Label").GetComponent<UILabel> ().text = LocalStorage.SelectClassName;
+		transform.FindChild ("Label").GetComponent<UILabel> ().text = LocalStorage.accountType == AccountType.Teacher ? LocalStorage.SelectClassName : "";
 		var wf = new WWWForm ();
-		wf.AddField ("TestType", 1);
+		int TestType = LocalStorage.accountType == AccountType.Teacher ? 1 : 0;
+		wf.AddField ("TestType", TestType);
 		wf.AddField ("StudentId", LocalStorage.StudentID);
 		wf.AddField ("GradeId", LocalStorage.SelectClassID);
-		WWWProvider.Instance.StartWWWCommunication ("/paper/list", wf, (x, y) =>
+		WWWProvider.Instance.StartWWWCommunication ("/test/listTestPaper", wf, (x, y) =>
 		{
 			var jn = JSONNode.Parse (y);
 			if (jn ["result"].AsInt == 1)
@@ -38,7 +42,7 @@ public class PaperList : MonoBehaviour
 			}
 			else
 			{
-				Debug.LogError ("Get PaperList Fail!");
+				Debug.LogError (string.Format ("Get /test/listTestPaper Fail! TestType:{0},StudentId:{1},GradeId:{2},", TestType, LocalStorage.StudentID, LocalStorage.SelectClassID));
 			}
 		});
 	}
@@ -52,18 +56,19 @@ public class PaperList : MonoBehaviour
 		for (int i = 0; i < jsonNode.Count; i++)
 		{
 			int index = i;
-			var tran = NGUITools.AddChild (scrollView, (GameObject)Resources.Load ("Prefabs/NameListItem")).transform;
-			tran.FindChild ("Label").GetComponent<UILabel> ().text = jsonNode [index] ["name"].Value;
+			var tran = NGUITools.AddChild (scrollView, (GameObject)Resources.Load ("Prefabs/PaperListItem")).transform;
+			tran.FindChild ("Label").GetComponent<UILabel> ().text = jsonNode [index] ["paperName"].Value;
 			UIButton ub = tran.GetComponent<UIButton> ();
 			ub.onClick.Clear ();
 			ub.onClick.Add (new EventDelegate (() => 
 			{
-
+				LocalStorage.PaperID = jsonNode [index] ["paperId"].AsInt;
+				Application.LoadLevel ("Zoo");
 			}));
 		}
-		for (int i = 0; i < 30 - jsonNode.Count; i++)
+		for (int i = 0; i < 3 - jsonNode.Count; i++)
 		{
-			Transform tran = NGUITools.AddChild (scrollView, (GameObject)Resources.Load ("Prefabs/NameListItem")).transform;
+			Transform tran = NGUITools.AddChild (scrollView, (GameObject)Resources.Load ("Prefabs/PaperListItem")).transform;
 			tran.GetComponent<UIWidget> ().alpha = 0;
 		}
 		scrollView.GetComponent<UIGrid> ().repositionNow = true;

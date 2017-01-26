@@ -15,6 +15,36 @@ public enum GAME_TYPE : int
 
 public class MainGameController : MonoBehaviour
 {
+	public class QuestionData
+	{
+		public int studentPaperId;
+		public int paperDetailId;
+		public List<int> characterIds = new List<int> ();
+		public int choiceId;
+		public bool isEnglish;
+		public bool isDisplayText;
+		public int gameType;
+	}
+
+	Dictionary<int, QuestionData> questionDic = new Dictionary<int, QuestionData> ();
+
+	public QuestionData GetCurrentQuestion
+	{
+		get
+		{
+			int i = 1;
+			foreach (var a in questionDic)
+			{
+				if (i == questionIndex)
+				{
+					return a.Value;
+				}
+				i++;
+			}
+			return null;
+		}
+	}
+
 	int RandomQuestionNum = 10;
 	int totalQuestionSize;
 	int currentQuestionPos = -1;
@@ -33,6 +63,7 @@ public class MainGameController : MonoBehaviour
 	int TotalQuestions;
 	UILabel redHeartLabel;
 	int score;
+	public List<int> practiceStudentID = new List<int> ();
 
 	public UIQuestion[] uiQuestions{ get; private set; }
 
@@ -40,7 +71,7 @@ public class MainGameController : MonoBehaviour
 
 	public UIAnswer answer{ get; private set; }
 
-	public JSONNode jsonNode{ get; private set; }
+	//public JSONNode jsonNode{ get; private set; }
 
 	public JSONNode allQuestions{ get; private set; }
 
@@ -95,18 +126,18 @@ public class MainGameController : MonoBehaviour
 		transform.FindChild ("Left").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => SwitchQuestion (true)));
 
 		var tran = transform.FindChild ("Practice");
-		tran.gameObject.SetActive(LocalStorage.accountType == AccountType.Teacher);
+		tran.gameObject.SetActive (LocalStorage.accountType == AccountType.Teacher);
 		tran.GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => NameList.Show ()));
 
 		tran = transform.FindChild ("FinishPractice");
-		tran.gameObject.SetActive(LocalStorage.accountType == AccountType.Teacher);
+		tran.gameObject.SetActive (LocalStorage.accountType == AccountType.Teacher);
 		tran.GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
 		{
 
 		}));
 
 		tran = transform.FindChild ("FinishClass");
-		tran.gameObject.SetActive(LocalStorage.accountType == AccountType.Teacher);
+		tran.gameObject.SetActive (LocalStorage.accountType == AccountType.Teacher);
 		tran.GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
 		{
 
@@ -167,11 +198,11 @@ public class MainGameController : MonoBehaviour
 
 		for (int i = 0; i < result.Count; i++)
 		{
-			string ID = jsonNode ["Characters"] [result [i]] ["CharacterID"].Value;
+			string ID = GetCurrentQuestion.characterIds [result [i]].ToString ();
 			if (Num == 1)
 			{
-				int choiceID = jsonNode ["Choice"].AsInt - 1;
-				ID = jsonNode ["Characters"] [choiceID] ["CharacterID"].Value;
+				int choiceID = GetCurrentQuestion.choiceId;
+				ID = GetCurrentQuestion.characterIds [choiceID].ToString ();
 				Vector3 v3 = uiQuestions [0].LocalPosition;
 				v3.x = 0;
 				uiQuestions [0].LocalPosition = v3;
@@ -182,9 +213,9 @@ public class MainGameController : MonoBehaviour
 
 	void SetAnswer ()
 	{
-		int choiceID = jsonNode ["Choice"].AsInt - 1;
-		bool isEnglish = jsonNode ["IsEnglish"].Value == "1";
-		string characterID = jsonNode ["Characters"] [choiceID] ["CharacterID"].Value;
+		int choiceID = GetCurrentQuestion.choiceId;
+		bool isEnglish = GetCurrentQuestion.isEnglish;
+		string characterID = GetCurrentQuestion.characterIds [choiceID].ToString ();
 		answer.Name = AssetData.GetNameByID (characterID, isEnglish);
 		answer.CharacterID = characterID;
 		answer.IsEnglish = isEnglish;
@@ -263,13 +294,11 @@ public class MainGameController : MonoBehaviour
 
 	void ShowAnimalNames ()
 	{
-		var characters = jsonNode ["Characters"];
-
 		List<int> result = RandomInt (uiAnswers.Length);
 
 		for (int i = 0; i < result.Count; i++)
 		{
-			string characterID = characters [result [i]] ["CharacterID"].Value;
+			string characterID = GetCurrentQuestion.characterIds [result [i]].ToString ();
 			uiAnswers [i].SetCharacterID (characterID);
 		}
 	}
@@ -499,7 +528,63 @@ public class MainGameController : MonoBehaviour
 
 	void GetQuestions ()
 	{
-		ServerRandomQuestions ();
+		var wf = new WWWForm ();
+		wf.AddField ("StudentPaperId", LocalStorage.PaperID);
+		WWWProvider.Instance.StartWWWCommunication ("/test/listTestPaperDetail", wf, (x, y) =>
+		{
+			var jn = JSONNode.Parse (y);
+			if (jn ["result"].AsInt == 1)
+			{
+				//StartCoroutine (GetListCharacters (jn ["data"]));
+				GetListCharacters (jn ["data"]);
+			}
+			else
+			{
+				Debug.LogError (string.Format ("Get /test/listTestPaperDetail Fail! PaperID:{0}", LocalStorage.PaperID));
+			}
+		});
+		//ServerRandomQuestions ();
+	}
+
+	void GetListCharacters (JSONNode jsonNode)
+	{
+		int num = 0;
+		for (int i = 0; i < jsonNode.Count; i++)
+		{
+			int index = i;
+			int questionId = jsonNode [index] ["questionId"].AsInt;
+			var item = new QuestionData ();
+			item.studentPaperId = jsonNode [index] ["studentPaperId"].AsInt;
+			item.paperDetailId = jsonNode [index] ["paperDetailId"].AsInt;
+			questionDic [questionId] = item;
+			var wf1 = new WWWForm ();
+			wf1.AddField ("QuestionId", questionId);
+			WWWProvider.Instance.StartWWWCommunication ("/question/listCharacters", wf1, (x1, y1) =>
+			{
+				var jn1 = JSONNode.Parse (y1);
+				if (jn1 ["result"].AsInt == 1)
+				{
+					jn1 = jn1 ["data"];
+					int questionId1 = jn1 [0] ["questionId"].AsInt;
+					var item1 = questionDic [questionId1];
+					for (int j = 0; j < jn1.Count; j++)
+					{
+						item1.characterIds.Add (jn1 [j] ["characterId"].AsInt);
+					}
+					questionDic [questionId1] = item1;
+					num++;
+					if (num >= jsonNode.Count)
+					{
+						questionIndex = 1;
+						DataToUI ();
+					}
+				}
+				else
+				{
+					Debug.LogError (string.Format ("Get /question/listCharacters Fail! QuestionId:{0}", jsonNode [index] ["questionId"].AsInt));
+				}
+			});
+		}
 	}
 
 	void LocalRandomQuestions ()
@@ -597,14 +682,14 @@ public class MainGameController : MonoBehaviour
 
 	void DataToUI ()
 	{
-		jsonNode = allQuestions ["Questions"] [questionIndex];
-		int gameID = jsonNode ["GameID"].AsInt;
+		//jsonNode = allQuestions ["Questions"] [questionIndex];
+		int gameID = 2;//jsonNode ["GameID"].AsInt;
 
 		if (Application.internetReachability == NetworkReachability.NotReachable)
 		{
 			if (gameID == 0)
 			{
-				int gameType = jsonNode ["GameType"].AsInt;
+				int gameType = GetCurrentQuestion.gameType;
 				if (gameType == 2 || gameType == 3)
 				{
 					questionIndex ++;
@@ -662,7 +747,7 @@ public class MainGameController : MonoBehaviour
 				break;
 		}
 		uiFinger.Show ();
-		questionIndex++;
+		//questionIndex++;
 		startPerAnswerTime = (int)Time.time;
 		clickNum = 0;
 		startAnswerTime = System.DateTime.Now;
@@ -670,19 +755,19 @@ public class MainGameController : MonoBehaviour
 
 	void ReadPicture ()
 	{
-		switch (jsonNode ["GameType"].Value)
+		switch (GetCurrentQuestion.gameType)
 		{
-			case "1":
+			case 1:
 				GameType = GAME_TYPE.ReadPicture;
 				ShowPictures (1);
 				ShowAnimalNames ();
 				break;
-			case "2":
+			case 2:
 				GameType = GAME_TYPE.SpeechRecognizer;
 				ShowPictures (1);
 				ShowVoice ();
 				break;
-			case "3":
+			case 3:
 				GameType = GAME_TYPE.HWR;
 				ShowPictures (1);
 				ShowHWR ();
@@ -698,33 +783,49 @@ public class MainGameController : MonoBehaviour
 		{
 			if (questionIndex > 1)
 			{
-				questionIndex -= 2;
+				questionIndex --;
+				InitUI ();
+				DataToUI ();
 			}
 			else
 			{
 				return;
 			}
 		}
-		InitUI ();
-		if (questionIndex >= returnQuestionNum)
+		else
 		{
-			if (LocalStorage.IsRandomPlay)
+			if (questionIndex < questionDic.Count)
 			{
-				FinishQuestion ();
-			}
-			else if (currentQuestionPos >= totalQuestionSize - 1)
-			{
-				FinishQuestion ();
+				questionIndex ++;
+				InitUI ();
+				DataToUI ();
 			}
 			else
 			{
-				GetQuestions ();
+				FinishQuestion ();
 			}
 		}
-		else
-		{
-			DataToUI ();
-		}
+
+//		if (questionIndex >= returnQuestionNum)
+//		{
+//			if (LocalStorage.IsRandomPlay)
+//			{
+//				FinishQuestion ();
+//			}
+//			else if (currentQuestionPos >= totalQuestionSize - 1)
+//			{
+//				FinishQuestion ();
+//			}
+//			else
+//			{
+//				//GetQuestions ();
+//			}
+//		}
+//		else
+//		{
+//			DataToUI ();
+//		}
+
 	}
 
 	void FinishQuestion ()
@@ -732,7 +833,8 @@ public class MainGameController : MonoBehaviour
 		Alert.Show ("题已做完，选择是重做一遍，选择否，退到选场！", () => 
 		{
 			InitUI ();
-			GetQuestions ();
+			questionIndex = 1;
+			DataToUI ();
 		}, () => 
 		{
 			LocalStorage.IsSwitchBG = true;
@@ -742,65 +844,65 @@ public class MainGameController : MonoBehaviour
 
 	void SubmitLogs (bool IsTotal)
 	{
-		string submitType = "";
-		var jc = new JSONClass ();
-		if (isRandomQuestion)
-		{
-			submitType = IsTotal ? "SubmitUserTotalLogs" : "SubmitUserLogs";
-//			string UserID = LocalStorage.StudentID;
-//			if (UserID == "")
+//		string submitType = "";
+//		var jc = new JSONClass ();
+//		if (isRandomQuestion)
+//		{
+//			submitType = IsTotal ? "SubmitUserTotalLogs" : "SubmitUserLogs";
+////			string UserID = LocalStorage.StudentID;
+////			if (UserID == "")
+////			{
+////				UserID = SystemInfo.deviceUniqueIdentifier;
+////			}
+////			jc.Add ("UserID", UserID);
+//		}
+//		else
+//		{
+//			submitType = IsTotal ? "SubmitStudentTotalLogs" : "SubmitStudentLogs";
+//			//jc.Add ("StudentID", LocalStorage.StudentID);
+//			if (!IsTotal)
 //			{
-//				UserID = SystemInfo.deviceUniqueIdentifier;
+//				jc.Add ("QuizID", jsonNode ["QuizID"].Value);
+//				jc.Add ("QuizStatus", isRandomQuestion ? "1" : "0");
 //			}
-//			jc.Add ("UserID", UserID);
-		}
-		else
-		{
-			submitType = IsTotal ? "SubmitStudentTotalLogs" : "SubmitStudentLogs";
-			//jc.Add ("StudentID", LocalStorage.StudentID);
-			if (!IsTotal)
-			{
-				jc.Add ("QuizID", jsonNode ["QuizID"].Value);
-				jc.Add ("QuizStatus", isRandomQuestion ? "1" : "0");
-			}
-		}
-		if (!IsTotal)
-		{
-			jc.Add ("GameID", jsonNode ["GameID"].Value);
-			jc.Add ("Question", jsonNode.ToString ());
-			jc.Add ("ClickNo", clickNum.ToString ());
-			jc.Add ("SpentTime", ((int)Time.time - startPerAnswerTime).ToString ());
-			bool IsCorrect;
-			if (GameType == GAME_TYPE.LinkPicture)
-			{
-				IsCorrect = clickNum == 4;
-			}
-			else
-			{
-				IsCorrect = clickNum == 1;
-			}
-			if (IsCorrect)
-			{
-				LocalStorage.Score ++;
-			}
-			jc.Add ("IsCorrect", IsCorrect ? "1" : "0");
-		}
-		else
-		{
-			if (!isRandomQuestion)
-			{
-				jc.Add ("StateTime", startAnswerTime.ToString ("yyyy-MM-dd HH:mm:ss"));
-				jc.Add ("EndTime", System.DateTime.Now.ToString ("yyyy-MM-dd HH:mm:ss"));
-			}
-			jc.Add ("SpentTime", (System.DateTime.Now - startAnswerTime).TotalSeconds.ToString ());
-			jc.Add ("TotalQuestions", TotalQuestions.ToString ());
-			jc.Add ("TotalCorrectQuestions", LocalStorage.Score.ToString ());
-		}
-		jc.Add ("SceneID", LocalStorage.SceneID);
-		jc.Add ("SubmitDate", System.DateTime.Now.ToString ("yyyy-MM-dd HH:mm:ss"));
-		jc.Add ("TotalLogID", TotalLogID);
-
-		WWWProvider.Instance.StartWWWCommunication (submitType, jc);
+//		}
+//		if (!IsTotal)
+//		{
+//			jc.Add ("GameID", jsonNode ["GameID"].Value);
+//			jc.Add ("Question", jsonNode.ToString ());
+//			jc.Add ("ClickNo", clickNum.ToString ());
+//			jc.Add ("SpentTime", ((int)Time.time - startPerAnswerTime).ToString ());
+//			bool IsCorrect;
+//			if (GameType == GAME_TYPE.LinkPicture)
+//			{
+//				IsCorrect = clickNum == 4;
+//			}
+//			else
+//			{
+//				IsCorrect = clickNum == 1;
+//			}
+//			if (IsCorrect)
+//			{
+//				LocalStorage.Score ++;
+//			}
+//			jc.Add ("IsCorrect", IsCorrect ? "1" : "0");
+//		}
+//		else
+//		{
+//			if (!isRandomQuestion)
+//			{
+//				jc.Add ("StateTime", startAnswerTime.ToString ("yyyy-MM-dd HH:mm:ss"));
+//				jc.Add ("EndTime", System.DateTime.Now.ToString ("yyyy-MM-dd HH:mm:ss"));
+//			}
+//			jc.Add ("SpentTime", (System.DateTime.Now - startAnswerTime).TotalSeconds.ToString ());
+//			jc.Add ("TotalQuestions", TotalQuestions.ToString ());
+//			jc.Add ("TotalCorrectQuestions", LocalStorage.Score.ToString ());
+//		}
+//		jc.Add ("SceneID", LocalStorage.SceneID);
+//		jc.Add ("SubmitDate", System.DateTime.Now.ToString ("yyyy-MM-dd HH:mm:ss"));
+//		jc.Add ("TotalLogID", TotalLogID);
+//
+//		WWWProvider.Instance.StartWWWCommunication (submitType, jc);
 	}
 
 	// Update is called once per frame

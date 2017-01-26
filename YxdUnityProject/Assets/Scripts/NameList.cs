@@ -5,6 +5,7 @@ using SimpleJSON;
 public class NameList : MonoBehaviour
 {
 	GameObject scrollView;
+	MainGameController mgc;
 
 	public static void Show ()
 	{
@@ -16,7 +17,6 @@ public class NameList : MonoBehaviour
 	{
 		transform.FindChild ("Back").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
 		{
-			ClassList.Show ();
 			Destroy (gameObject);
 		}));
 		scrollView = transform.FindChild ("ScrollView").gameObject;
@@ -24,6 +24,7 @@ public class NameList : MonoBehaviour
 
 	void Start ()
 	{
+		mgc = transform.parent.GetComponent<MainGameController> ();
 		transform.FindChild ("Sprite/Label").GetComponent<UILabel> ().text = LocalStorage.SelectClassName;
 		var wf = new WWWForm ();
 		wf.AddField ("GradeId", LocalStorage.SelectClassID);
@@ -32,25 +33,26 @@ public class NameList : MonoBehaviour
 			var jn = JSONNode.Parse (y);
 			if (jn ["result"].AsInt == 1)
 			{
-				//RefreshClassName (jn ["data"]);
+				RefreshName (jn ["data"]);
 			}
 			else
 			{
-				Debug.LogError ("Get ClassList Fail!");
+				Debug.LogError (string.Format ("Get /student/listByGrade Fail! GradeId:{0}", LocalStorage.SelectClassID));
 			}
 		});
 	}
 
-	void RefreshClassName (JSONNode jsonNode)
+	void RefreshName (JSONNode jsonNode)
 	{
 		for (int i = 0; i < scrollView.transform.childCount; i++)
 		{
 			Destroy (scrollView.transform.GetChild (i).gameObject);
 		}
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < jsonNode.Count; i++)
 		{
+			int index = i;
 			var tran = NGUITools.AddChild (scrollView, (GameObject)Resources.Load ("Prefabs/NameListItem")).transform;
-			tran.FindChild ("Label").GetComponent<UILabel> ().text = "123";
+			tran.FindChild ("Label").GetComponent<UILabel> ().text = jsonNode [index] ["studentName"].Value;
 			UIButton ub = tran.GetComponent<UIButton> ();
 			if (true)
 			{
@@ -59,10 +61,11 @@ public class NameList : MonoBehaviour
 			ub.onClick.Clear ();
 			ub.onClick.Add (new EventDelegate (() => 
 			{
-
+				mgc.practiceStudentID.Add (jsonNode [index] ["studentId"].AsInt);
+				Destroy (gameObject);
 			}));
 		}
-		for (int i = 0; i < 30 - 2; i++)
+		for (int i = 0; i < 30 - jsonNode.Count; i++)
 		{
 			Transform tran = NGUITools.AddChild (scrollView, (GameObject)Resources.Load ("Prefabs/NameListItem")).transform;
 			tran.GetComponent<UIWidget> ().alpha = 0;

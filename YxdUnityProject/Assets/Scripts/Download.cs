@@ -81,45 +81,46 @@ public class Download : MonoBehaviour
 	void DownLoadCharactersInfo (bool IsSuccess, string JsonData)
 	{
 		var jn = JSONNode.Parse (JsonData);
-		isUpdateNeeded = jn ["result"].Value == "1";
+		isUpdateNeeded = jn ["result"].AsInt == 1;
 		if (isUpdateNeeded)
 		{
 			var wf = new WWWForm ();
-			wf.AddField ("IsAll", "0");
+			wf.AddField ("IsAll", 1);
 			WWWProvider.Instance.StartWWWCommunication ("/character/download", wf, (x , y) =>
 			{
 				try
 				{
 					jsonNode = JSONNode.Parse (y);
+					jsonNode = jsonNode["data"];
 					float _assetNum = 0;
 					DateTime lastUpdateTime = new DateTime ();
 					//计算资源总数
 					for (int i = 0; i < jsonNode.Count; i++)
 					{
-						if (jsonNode [i] ["ChineseVoice"].Value != "")
+						if (jsonNode [i] ["chineseVoice"].Value != "")
 						{
 							_assetNum++;
 						}
-						if (jsonNode [i] ["EnglishVoice"].Value != "")
+						if (jsonNode [i] ["englishVoice"].Value != "")
 						{
 							_assetNum++;
 						}
-						if (jsonNode [i] ["ImageURL"].Value != "")
+						if (jsonNode [i] ["imageUrl"].Value != "")
 						{
 							_assetNum++;
 						}
-						for (int n = 0; jsonNode [i] ["AnimationNumber"].Value != "" && n < jsonNode [i] ["AnimationNumber"].AsInt; n++)
+						for (int n = 0; jsonNode [i] ["animationNumber"].Value != "" && n < jsonNode [i] ["animationNumber"].AsInt; n++)
 						{
 							_assetNum++;
 						}
 						//比较最晚更新时间
 						if (i == 0)
 						{
-							lastUpdateTime = DateTime.ParseExact (jsonNode [i] ["UpdateTime"].Value, timeFormat, null);
+							lastUpdateTime = DateTime.ParseExact (jsonNode [i] ["updateTime"].Value, timeFormat, null);
 						}
-						else if (lastUpdateTime.CompareTo (DateTime.ParseExact (jsonNode [i] ["UpdateTime"].Value, timeFormat, null)) < 0)
+						else if (lastUpdateTime.CompareTo (DateTime.ParseExact (jsonNode [i] ["updateTime"].Value, timeFormat, null)) < 0)
 						{
-							lastUpdateTime = DateTime.ParseExact (jsonNode [i] ["UpdateTime"].Value, timeFormat, null);
+							lastUpdateTime = DateTime.ParseExact (jsonNode [i] ["updateTime"].Value, timeFormat, null);
 						}
 					}
 					var jsonClass = new JSONClass ();
@@ -156,16 +157,16 @@ public class Download : MonoBehaviour
 		string currentDownloadURL = jsonNode ["CurrentDownloadURL"].Value;
 		string lastDownloadURL = lastJsonNode ["CurrentDownloadURL"].Value;
 		assetNum = jsonNode ["AssetNum"].AsFloat;
-		jsonNode = jsonNode ["ArrayData"];
+		jsonNode = jsonNode ["ArrayData"]["data"];
 		if (isUpdateNeeded)
 		{
-			lastJsonNode = lastJsonNode ["ArrayData"];
+			lastJsonNode = lastJsonNode ["ArrayData"]["data"];
 		}
 
 		//开始下载.....
 		for (int i = 0; i < jsonNode.Count; i++)
 		{
-			string id = jsonNode [i] ["ID"].Value;
+			string id = jsonNode [i] ["id"].Value;
 			var jn = jsonNode [i];
 
 			bool isUpdate = false;
@@ -174,7 +175,7 @@ public class Download : MonoBehaviour
 				JSONNode lastJn = null;
 				for (int m = 0; m < lastJsonNode.Count; m++)
 				{
-					if (id == lastJsonNode [m] ["ID"].Value)
+					if (id == lastJsonNode [m] ["id"].Value)
 					{
 						lastJn = lastJsonNode [m];
 						break;
@@ -186,7 +187,7 @@ public class Download : MonoBehaviour
 				}
 				else
 				{
-					isUpdate = DateTime.ParseExact (jn ["UpdateTime"].Value, timeFormat, null) > DateTime.ParseExact (lastJn ["UpdateTime"].Value, timeFormat, null);
+					isUpdate = DateTime.ParseExact (jn ["updateTime"].Value, timeFormat, null) > DateTime.ParseExact (lastJn ["updateTime"].Value, timeFormat, null);
 				}
 			}
 			isUpdate = isUpdate || currentDownloadURL != lastDownloadURL;
@@ -212,12 +213,12 @@ public class Download : MonoBehaviour
 				}
 				if (j == 0)
 				{
-					string keyVoice = jn ["ChineseVoice"].Value;
+					string keyVoice = jn ["chineseVoice"].Value;
 					if (keyVoice != "")
 					{
 						assetNameAndTypeDic [keyVoice] = ASSET_TYPE.ChineseVoice;
 					}
-					keyVoice = jn ["EnglishVoice"].Value;
+					keyVoice = jn ["englishVoice"].Value;
 					if (keyVoice != "")
 					{
 						assetNameAndTypeDic [keyVoice] = ASSET_TYPE.EnglishVoice;
@@ -225,14 +226,14 @@ public class Download : MonoBehaviour
 				}
 				else if (j == 1)
 				{
-					assetNameAndTypeDic.Add (jn ["ImageURL"].Value, ASSET_TYPE.Image);
+					assetNameAndTypeDic.Add (jn ["imageUrl"].Value, ASSET_TYPE.Image);
 				}
 				else if (j == 2)
 				{
-					for (int n = 1; n <= jn ["AnimationNumber"].AsInt; n++)
+					for (int n = 1; n <= jn ["animationNumber"].AsInt; n++)
 					{
 						animationFolderPath.Remove (0, animationFolderPath.Length);
-						animationFolderPath.Append (jn ["AnimationFolder"].Value);
+						animationFolderPath.Append (jn ["animationFolder"].Value);
 						animationFolderPath.Append (n);
 						animationFolderPath.Append (".png");
 						assetNameAndTypeDic.Add (animationFolderPath.ToString (), ASSET_TYPE.AnimationImages);
@@ -274,7 +275,7 @@ public class Download : MonoBehaviour
 			descriptionLabel.text = description.Contains ("加载") ? "资源加载完成！" : "资源下载完成！";
 			yield return new WaitForSeconds (1);
 			LocalStorage.IsSwitchBG = false;
-			Application.LoadLevel ("SelectScene");
+			Application.LoadLevel ("Login");
 		}
 	}
 

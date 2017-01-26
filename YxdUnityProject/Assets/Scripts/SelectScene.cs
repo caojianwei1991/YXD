@@ -6,6 +6,7 @@ public class SelectScene : MonoBehaviour
 {
 	UILabel redHeartLabel;
 	UIButton btnZoo, btnOrchard;
+	GameObject content;
 
 	void Awake ()
 	{
@@ -17,20 +18,21 @@ public class SelectScene : MonoBehaviour
 			LocalStorage.IsSwitchBG = false;
 			Application.LoadLevel ("Login");
 		}));
-		btnZoo = transform.FindChild ("SceneList/Zoo").GetComponent<UIButton> ();
-		btnZoo.onClick.Add (new EventDelegate (() => 
-		{
-			LocalStorage.IsSwitchBG = true;
-			LocalStorage.SceneID = "0";
-			Application.LoadLevel ("Zoo");
-		}));
-		btnOrchard = transform.FindChild ("SceneList/Orchard").GetComponent<UIButton> ();
-		btnOrchard.onClick.Add (new EventDelegate (() => 
-		{
-			LocalStorage.IsSwitchBG = true;
-			LocalStorage.SceneID = "1";
-			Application.LoadLevel ("Orchard");
-		}));
+		content = transform.FindChild ("SceneList/UIWrap Content").gameObject;
+//		btnZoo = transform.FindChild ("SceneList/Zoo").GetComponent<UIButton> ();
+//		btnZoo.onClick.Add (new EventDelegate (() => 
+//		{
+//			LocalStorage.IsSwitchBG = true;
+//			LocalStorage.SceneID = "0";
+//			Application.LoadLevel ("Zoo");
+//		}));
+//		btnOrchard = transform.FindChild ("SceneList/Orchard").GetComponent<UIButton> ();
+//		btnOrchard.onClick.Add (new EventDelegate (() => 
+//		{
+//			LocalStorage.IsSwitchBG = true;
+//			LocalStorage.SceneID = "1";
+//			Application.LoadLevel ("Orchard");
+//		}));
 
 	}
 
@@ -50,15 +52,45 @@ public class SelectScene : MonoBehaviour
 	{
 		redHeartLabel.text = LocalStorage.Score.ToString ();
 		SoundPlay.Instance.PlayBG ();
-		if (LocalStorage.Language == "1")
+		if (LocalStorage.accountType == AccountType.Teacher)
 		{
-			btnZoo.GetComponent<UITexture> ().mainTexture = (Texture)Resources.Load ("Texture/zoo_en");
-			btnOrchard.GetComponent<UITexture> ().mainTexture = (Texture)Resources.Load ("Texture/orchard_en");
+			ClassList.Show ();
 		}
 		else
 		{
-			btnZoo.GetComponent<UITexture> ().mainTexture = (Texture)Resources.Load ("Texture/zoo_cn");
-			btnOrchard.GetComponent<UITexture> ().mainTexture = (Texture)Resources.Load ("Texture/orchard_cn");
+			PaperList.Show ();
 		}
+//		if (LocalStorage.Language == "1")
+//		{
+//			btnZoo.GetComponent<UITexture> ().mainTexture = (Texture)Resources.Load ("Texture/zoo_en");
+//			btnOrchard.GetComponent<UITexture> ().mainTexture = (Texture)Resources.Load ("Texture/orchard_en");
+//		}
+//		else
+//		{
+//			btnZoo.GetComponent<UITexture> ().mainTexture = (Texture)Resources.Load ("Texture/zoo_cn");
+//			btnOrchard.GetComponent<UITexture> ().mainTexture = (Texture)Resources.Load ("Texture/orchard_cn");
+//		}
+	}
+
+	void RefreshWeeks (JSONNode jsonNode)
+	{
+		for (int i = 0; i < content.transform.childCount; i++)
+		{
+			Destroy (content.transform.GetChild (i).gameObject);
+		}
+		for (int i = 0; i < jsonNode.Count; i++)
+		{
+			int index = i;
+			var tran = NGUITools.AddChild (content, (GameObject)Resources.Load ("Prefabs/SceneListItem")).transform;
+			tran.FindChild ("Label").GetComponent<UILabel> ().text = jsonNode [index] ["paperName"].Value;
+			UIButton ub = tran.GetComponent<UIButton> ();
+			ub.onClick.Clear ();
+			ub.onClick.Add (new EventDelegate (() => 
+			{
+				
+			}));
+		}
+		content.GetComponent<UIWrapContent> ().WrapContent ();
+		content.transform.parent.GetComponent<UIScrollView> ().ResetPosition ();
 	}
 }

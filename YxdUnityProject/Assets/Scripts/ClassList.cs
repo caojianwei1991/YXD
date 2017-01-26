@@ -14,7 +14,11 @@ public class ClassList : MonoBehaviour
 
 	void Awake ()
 	{
-		transform.FindChild ("Back").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => Destroy (gameObject)));
+		transform.FindChild ("Back").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
+		{
+			LocalStorage.IsSwitchBG = false;
+			Application.LoadLevel ("Login");
+		}));
 		scrollView = transform.FindChild ("ScrollView").gameObject;
 	}
 
@@ -31,7 +35,7 @@ public class ClassList : MonoBehaviour
 			}
 			else
 			{
-				Debug.LogError ("Get ClassList Fail!");
+				Debug.LogError (string.Format ("Get /grade/listByTeacher Fail! TeacherID:{0}", LocalStorage.TeacherID));
 			}
 		});
 	}
@@ -53,8 +57,8 @@ public class ClassList : MonoBehaviour
 			{
 				LocalStorage.SelectClassID = jsonNode [index] ["id"].AsInt;
 				LocalStorage.SelectClassName = jsonNode [index] ["name"].Value;
-				NameList.Show ();
 				Destroy (gameObject);
+				PaperList.Show ();
 			}));
 		}
 		for (int i = 0; i < 30 - jsonNode.Count; i++)

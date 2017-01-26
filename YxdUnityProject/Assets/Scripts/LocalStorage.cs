@@ -35,4 +35,6 @@ public class LocalStorage
 	public static int SelectClassID { get; set; }
 
 	public static string SelectClassName { get; set; }
+
+	public static int PaperID { get; set; }
 }
