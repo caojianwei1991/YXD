@@ -8,6 +8,7 @@ public enum  AccountType
 	RandomPlay
 }
 
+
 public class LocalStorage
 {
 	public static AccountType accountType { get; set; }
@@ -37,4 +38,16 @@ public class LocalStorage
 	public static string SelectClassName { get; set; }
 
 	public static int PaperID { get; set; }
+	
+	public static int SelectWeek
+	{
+		get
+		{
+			return PlayerPrefs.GetInt ("SelectWeek", 1);
+		}
+		set
+		{
+			PlayerPrefs.SetInt ("SelectWeek", value);
+		}
+	}
 }

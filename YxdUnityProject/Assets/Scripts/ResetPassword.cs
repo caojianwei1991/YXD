@@ -27,7 +27,7 @@ public class ResetPassword : MonoBehaviour
 	
 	void StartResetPassword ()
 	{
-		if (inputUserName.value.Trim ().Length < 1 || inputNumber.value.Trim ().Length < 1 || inputCode.value.Trim ().Length < 1 || inputPassword.value.Trim ().Length < 1 || inputConfirm.value.Trim ().Length < 1)
+		if (/*inputUserName.value.Trim ().Length < 1 || */inputNumber.value.Trim ().Length < 1 || inputCode.value.Trim ().Length < 1 || inputPassword.value.Trim ().Length < 1 || inputConfirm.value.Trim ().Length < 1)
 		{
 			Alert.Show ("信息填写不完整，请补充！");
 			return;
@@ -39,9 +39,9 @@ public class ResetPassword : MonoBehaviour
 		}
 		var wf = new WWWForm ();
 		wf.AddField ("StudentId", inputNumber.value.Trim ());
-		wf.AddField ("Password", inputPassword.value.Trim ());
+		wf.AddField ("Password", WWWProvider.GetMD5 (inputPassword.value.Trim ()));
 		wf.AddField ("VerificationCode", inputCode.value.Trim ());
-		WWWProvider.Instance.StartWWWCommunication ("/student/resetpassword", wf, (x, y) =>
+		WWWProvider.Instance.StartWWWCommunication ("/student/resetPassword", wf, (x, y) =>
 		{
 			var jn = JSONNode.Parse (y);
 			if (jn ["result"].AsInt == 1)
@@ -68,7 +68,7 @@ public class ResetPassword : MonoBehaviour
 		InvokeRepeating ("RefreshRemainTime", 0, 1);
 		var wf = new WWWForm ();
 		wf.AddField ("PhoneNumber", inputNumber.value.Trim ());
-		WWWProvider.Instance.StartWWWCommunication ("/mobile/validationCode", wf, (x, y) =>
+		WWWProvider.Instance.StartWWWCommunication ("/sms/validationCode", wf, (x, y) =>
 		{
 			var jn = JSONNode.Parse (y);
 			if (jn ["result"].AsInt == 1)

@@ -31,6 +31,7 @@ public class Login : MonoBehaviour
 		//LocalStorage.StudentID = "";
 		LocalStorage.Score = 0;
 		LocalStorage.IsTest = false;
+		LocalStorage.SelectClassID = -1;
 	}
 
 	void Start ()
@@ -121,7 +122,7 @@ public class Login : MonoBehaviour
 	void RandomPlay ()
 	{
 		LocalStorage.accountType = AccountType.RandomPlay;
-		Application.LoadLevel ("SelectScene");
+		Application.LoadLevel ("Zoo");
 		return;
 		if (inputUserName.value.Length < 1 || inputPassword.value.Length < 1)
 		{
@@ -144,7 +145,7 @@ public class Login : MonoBehaviour
 				var jc = new JSONClass ();
 				jc.Add ("SchoolID", inputUserName.value);
 				jc.Add ("IPAddress", "52.221.227.248");
-				WWWProvider.Instance.StartWWWCommunication ("GetServerURL", jc, RandomPlayCheckUser);
+				//WWWProvider.Instance.StartWWWCommunication ("GetServerURL", jc, RandomPlayCheckUser);
 			}
 			else
 			{
@@ -158,19 +159,19 @@ public class Login : MonoBehaviour
 		var jc = new JSONClass ();
 		jc.Add ("StudentID", inputUserName.value);
 		jc.Add ("SchoolID", inputPassword.value);
-		WWWProvider.Instance.StartWWWCommunication ("CheckUser", jc, (x, y) =>
-		{
-			var jn = JSONNode.Parse (y);
-			if (jn ["IsSuccess"].Value == "1")
-			{
-				LocalStorage.IsRandomPlay = true;
-				EnterQuizPlay ();
-			}
-			else
-			{
-				Alert.Show ("用户名或秘密错误，请重新输入！");
-			}
-		});
+//		WWWProvider.Instance.StartWWWCommunication ("CheckUser", jc, (x, y) =>
+//		{
+//			var jn = JSONNode.Parse (y);
+//			if (jn ["IsSuccess"].Value == "1")
+//			{
+//				LocalStorage.IsRandomPlay = true;
+//				EnterQuizPlay ();
+//			}
+//			else
+//			{
+//				Alert.Show ("用户名或秘密错误，请重新输入！");
+//			}
+//		});
 	}
 
 	void UpdateUserID (string UserName, string Email)
@@ -182,16 +183,16 @@ public class Login : MonoBehaviour
 		jc.Add ("currentDateTime", DateTime.Now.ToString ("yyyy-MM-dd HH:mm:ss"));
 		if (Application.internetReachability != NetworkReachability.NotReachable)
 		{
-			WWWProvider.Instance.StartWWWCommunication ("UpdateUserID", jc, (x, y) =>
-			{
-				var jn = JSONNode.Parse (y);
-				if (jn ["IsSuccess"].Value == "1")
-				{
-					//LocalStorage.StudentID = UserName;
-					LocalStorage.Email = Email;
-					EnterRandomPlay ();
-				}
-			});
+//			WWWProvider.Instance.StartWWWCommunication ("UpdateUserID", jc, (x, y) =>
+//			{
+//				var jn = JSONNode.Parse (y);
+//				if (jn ["IsSuccess"].Value == "1")
+//				{
+//					//LocalStorage.StudentID = UserName;
+//					LocalStorage.Email = Email;
+//					EnterRandomPlay ();
+//				}
+//			});
 		}
 		else
 		{

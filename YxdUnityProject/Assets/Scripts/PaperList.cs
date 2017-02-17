@@ -27,12 +27,13 @@ public class PaperList : MonoBehaviour
 
 	void Start ()
 	{
-		transform.FindChild ("Label").GetComponent<UILabel> ().text = LocalStorage.accountType == AccountType.Teacher ? LocalStorage.SelectClassName : "";
+		transform.FindChild ("Label").GetComponent<UILabel> ().text = LocalStorage.accountType == AccountType.Teacher ? LocalStorage.SelectClassName : string.Format("第{0}周", LocalStorage.SelectWeek);
 		var wf = new WWWForm ();
 		int TestType = LocalStorage.accountType == AccountType.Teacher ? 1 : 0;
 		wf.AddField ("TestType", TestType);
 		wf.AddField ("StudentId", LocalStorage.StudentID);
 		wf.AddField ("GradeId", LocalStorage.SelectClassID);
+		wf.AddField ("Category", LocalStorage.SelectWeek);
 		WWWProvider.Instance.StartWWWCommunication ("/test/listTestPaper", wf, (x, y) =>
 		{
 			var jn = JSONNode.Parse (y);

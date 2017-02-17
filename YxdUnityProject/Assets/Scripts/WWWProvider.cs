@@ -11,9 +11,9 @@ public class WWWProvider : MonoBehaviour
 	readonly string DownLoadURL = "http://ezlearn.kudospark.com/";
 	readonly string NoNetWorkURL = "http://123.207.9.191";
 	readonly string GetServerURL = "/app2016/interface.php?schoolid=ezlearn&method=";
-	string URL = "http://123.207.9.191:8010/ezlearn-appservice";
+	string URL = "http://110.65.10.229/ezlearn-appservice";
 	string RedirectURL = "";
-	public static string DownLoadAssetURL = "http://123.207.9.191:8010/static/upload";
+	public static string DownLoadAssetURL = "http://110.65.10.229/statics/upload";
 	static WWWProvider instance;
 
 	public static WWWProvider Instance
@@ -65,11 +65,6 @@ public class WWWProvider : MonoBehaviour
 		}
 	}
 
-	public void StartWWWCommunication (string MethodName, JSONClass wf, Action<bool, string> OnSuccess = null)
-	{
-
-	}
-
 	public void StartWWWCommunication (string MethodName, WWWForm wf, Action<bool, string> OnSuccess = null)
 	{
 		//GetRedirectURL (MethodName);
@@ -79,7 +74,15 @@ public class WWWProvider : MonoBehaviour
 	public IEnumerator WWWCommunication (string MethodName, WWWForm wf, Action<bool, string> OnSuccess)
 	{
 		Debug.LogError (URL + MethodName);
-		WWW www = new WWW (URL + MethodName, wf);
+		WWW www = null;
+		if (wf == null)
+		{
+			www = new WWW (URL + MethodName);
+		}
+		else
+		{
+			www = new WWW (URL + MethodName, wf);
+		}
 		yield return www;
 		if (www.error != null)
 		{

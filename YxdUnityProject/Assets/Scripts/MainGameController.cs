@@ -17,6 +17,8 @@ public class MainGameController : MonoBehaviour
 {
 	public class QuestionData
 	{
+		public int Id;
+		public int questionId;
 		public int studentPaperId;
 		public int paperDetailId;
 		public List<int> characterIds = new List<int> ();
@@ -85,6 +87,8 @@ public class MainGameController : MonoBehaviour
 
 	public UIFinger uiFinger{ get; private set; }
 
+	public GameObject finishPractice{ get; set; }
+
 	void Awake ()
 	{
 		uiQuestions = new UIQuestion[4];
@@ -94,7 +98,14 @@ public class MainGameController : MonoBehaviour
 		transform.FindChild ("Back").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
 		{
 			LocalStorage.IsSwitchBG = true;
-			Application.LoadLevel ("SelectScene");
+			if(LocalStorage.accountType == AccountType.RandomPlay)
+			{
+				Application.LoadLevel ("Login");
+			}
+			else
+			{
+				Application.LoadLevel ("SelectScene");
+			}
 		}));
 		for (int i = 0; i < uiQuestions.Length; i++)
 		{
@@ -119,7 +130,7 @@ public class MainGameController : MonoBehaviour
 
 		redHeartLabel = transform.FindChild ("RedHeart/Label").GetComponent<UILabel> ();
 
-		transform.FindChild ("RedHeart").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => Share.Show ()));
+		//transform.FindChild ("RedHeart").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => Share.Show ()));
 
 		transform.FindChild ("Right").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => SwitchQuestion ()));
 
@@ -130,17 +141,20 @@ public class MainGameController : MonoBehaviour
 		tran.GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => NameList.Show ()));
 
 		tran = transform.FindChild ("FinishPractice");
-		tran.gameObject.SetActive (LocalStorage.accountType == AccountType.Teacher);
+		finishPractice = tran.gameObject;
+		finishPractice.SetActive (false);
 		tran.GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
 		{
-
+			finishPractice.SetActive (false);
+			practiceStudentID.Clear ();
 		}));
 
 		tran = transform.FindChild ("FinishClass");
 		tran.gameObject.SetActive (LocalStorage.accountType == AccountType.Teacher);
 		tran.GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
 		{
-
+			LocalStorage.IsSwitchBG = true;
+			Application.LoadLevel ("SelectScene");
 		}));
 	}
 
@@ -364,7 +378,7 @@ public class MainGameController : MonoBehaviour
 			jc.Add ("Text", answer.Name);
 			jc.Add ("RecogText", str [0]);
 			jc.Add ("RecogScore", str [1]);
-			WWWProvider.Instance.StartWWWCommunication ("GetCorrectAnswer", jc);
+			//WWWProvider.Instance.StartWWWCommunication ("GetCorrectAnswer", jc);
 			AddScoreAnimation ((score * 0.1f).ToString ("F0"));
 			uiCharacter.PlayResultSound (Random.Range (4, 7), false, () =>
 			{
@@ -455,7 +469,7 @@ public class MainGameController : MonoBehaviour
 			jc.Add ("Text", wordHWR);
 			jc.Add ("RecogText", RecogText);
 			jc.Add ("RecogScore", RecogScore.ToString ());
-			WWWProvider.Instance.StartWWWCommunication ("GetCorrectAnswer", jc);
+			//WWWProvider.Instance.StartWWWCommunication ("GetCorrectAnswer", jc);
 			AddScoreAnimation ((RecogScore * 0.1f).ToString ());
 			uiCharacter.PlayResultSound (Random.Range (4, 7), false, () =>
 			{
@@ -528,34 +542,55 @@ public class MainGameController : MonoBehaviour
 
 	void GetQuestions ()
 	{
-		var wf = new WWWForm ();
-		wf.AddField ("StudentPaperId", LocalStorage.PaperID);
-		WWWProvider.Instance.StartWWWCommunication ("/test/listTestPaperDetail", wf, (x, y) =>
+		if (LocalStorage.accountType == AccountType.RandomPlay)
 		{
-			var jn = JSONNode.Parse (y);
-			if (jn ["result"].AsInt == 1)
+			WWWProvider.Instance.StartWWWCommunication ("/question/randomList", null, (x, y) =>
 			{
-				//StartCoroutine (GetListCharacters (jn ["data"]));
-				GetListCharacters (jn ["data"]);
-			}
-			else
+				var jn = JSONNode.Parse (y);
+				if (jn ["result"].AsInt == 1)
+				{
+					GetRandomListCharacters (jn ["data"]);
+				}
+				else
+				{
+					Debug.LogError (string.Format ("Get /question/randomList Fail!"));
+				}
+			});
+		}
+		else
+		{
+			var wf = new WWWForm ();
+			wf.AddField ("StudentPaperId", LocalStorage.PaperID);
+			WWWProvider.Instance.StartWWWCommunication ("/test/listTestPaperDetail", wf, (x, y) =>
 			{
-				Debug.LogError (string.Format ("Get /test/listTestPaperDetail Fail! PaperID:{0}", LocalStorage.PaperID));
-			}
-		});
+				var jn = JSONNode.Parse (y);
+				if (jn ["result"].AsInt == 1)
+				{
+					//StartCoroutine (GetListCharacters (jn ["data"]));
+					GetListCharacters (jn ["data"]);
+				}
+				else
+				{
+					Debug.LogError (string.Format ("Get /test/listTestPaperDetail Fail! PaperID:{0}", LocalStorage.PaperID));
+				}
+			});
+		}
 		//ServerRandomQuestions ();
 	}
 
-	void GetListCharacters (JSONNode jsonNode)
+	void GetRandomListCharacters (JSONNode jsonNode)
 	{
 		int num = 0;
 		for (int i = 0; i < jsonNode.Count; i++)
 		{
 			int index = i;
-			int questionId = jsonNode [index] ["questionId"].AsInt;
+			int questionId = jsonNode [index] ["id"].AsInt;
 			var item = new QuestionData ();
+			item.Id = jsonNode [index] ["id"].AsInt;
+			item.questionId = questionId;
 			item.studentPaperId = jsonNode [index] ["studentPaperId"].AsInt;
 			item.paperDetailId = jsonNode [index] ["paperDetailId"].AsInt;
+			item.gameType = 1001;//jsonNode [index] ["gameId"].AsInt;
 			questionDic [questionId] = item;
 			var wf1 = new WWWForm ();
 			wf1.AddField ("QuestionId", questionId);
@@ -581,7 +616,51 @@ public class MainGameController : MonoBehaviour
 				}
 				else
 				{
-					Debug.LogError (string.Format ("Get /question/listCharacters Fail! QuestionId:{0}", jsonNode [index] ["questionId"].AsInt));
+					Debug.LogError (string.Format ("Get /question/listCharacters Fail! QuestionId:{0}", questionId));
+				}
+			});
+		}
+	}
+
+	void GetListCharacters (JSONNode jsonNode)
+	{
+		int num = 0;
+		for (int i = 0; i < jsonNode.Count; i++)
+		{
+			int index = i;
+			int questionId = jsonNode [index] ["questionId"].AsInt;
+			var item = new QuestionData ();
+			item.Id = jsonNode [index] ["id"].AsInt;
+			item.questionId = questionId;
+			item.studentPaperId = jsonNode [index] ["studentPaperId"].AsInt;
+			item.paperDetailId = jsonNode [index] ["paperDetailId"].AsInt;
+			item.gameType = jsonNode [index] ["gameId"].AsInt;
+			questionDic [questionId] = item;
+			var wf1 = new WWWForm ();
+			wf1.AddField ("QuestionId", questionId);
+			WWWProvider.Instance.StartWWWCommunication ("/question/listCharacters", wf1, (x1, y1) =>
+			{
+				var jn1 = JSONNode.Parse (y1);
+				if (jn1 ["result"].AsInt == 1)
+				{
+					jn1 = jn1 ["data"];
+					int questionId1 = jn1 [0] ["questionId"].AsInt;
+					var item1 = questionDic [questionId1];
+					for (int j = 0; j < jn1.Count; j++)
+					{
+						item1.characterIds.Add (jn1 [j] ["characterId"].AsInt);
+					}
+					questionDic [questionId1] = item1;
+					num++;
+					if (num >= jsonNode.Count)
+					{
+						questionIndex = 1;
+						DataToUI ();
+					}
+				}
+				else
+				{
+					Debug.LogError (string.Format ("Get /question/listCharacters Fail! QuestionId:{0}", questionId));
 				}
 			});
 		}
@@ -659,7 +738,7 @@ public class MainGameController : MonoBehaviour
 				isRandomQuestion = false;
 			}
 			jc.Add ("Language", LocalStorage.Language);
-			WWWProvider.Instance.StartWWWCommunication (gameName, jc, DealQuestionsData);
+			//WWWProvider.Instance.StartWWWCommunication (gameName, jc, DealQuestionsData);
 		}
 		else
 		{
@@ -682,34 +761,36 @@ public class MainGameController : MonoBehaviour
 
 	void DataToUI ()
 	{
-		//jsonNode = allQuestions ["Questions"] [questionIndex];
-		int gameID = 2;//jsonNode ["GameID"].AsInt;
-
-		if (Application.internetReachability == NetworkReachability.NotReachable)
+//		//jsonNode = allQuestions ["Questions"] [questionIndex];
+//		int gameID = 2;//jsonNode ["GameID"].AsInt;
+//
+//		if (Application.internetReachability == NetworkReachability.NotReachable)
+//		{
+//			if (gameID == 0)
+//			{
+//				int gameType = GetCurrentQuestion.gameType;
+//				if (gameType == 2 || gameType == 3)
+//				{
+//					questionIndex ++;
+//					SwitchQuestion ();
+//					return;
+//				}
+//			}
+//		}
+		switch (GetCurrentQuestion.gameType)
 		{
-			if (gameID == 0)
-			{
-				int gameType = GetCurrentQuestion.gameType;
-				if (gameType == 2 || gameType == 3)
-				{
-					questionIndex ++;
-					SwitchQuestion ();
-					return;
-				}
-			}
-		}
-		switch (gameID)
-		{
-			case 0:
+			case 1001:
+			case 1002:
+			case 1003:
 				SetAnswer ();
 				ReadPicture ();
 				break;
-			case 1:
+			case 1004:
 				GameType = GAME_TYPE.ListenPicture;
 				SetAnswer ();
 				ListenPicture ();
 				break;
-			case 2:
+			case 1005:
 				GameType = GAME_TYPE.LinkPicture;
 				LinkPicture ();
 				break;
@@ -757,17 +838,17 @@ public class MainGameController : MonoBehaviour
 	{
 		switch (GetCurrentQuestion.gameType)
 		{
-			case 1:
+			case 1001:
 				GameType = GAME_TYPE.ReadPicture;
 				ShowPictures (1);
 				ShowAnimalNames ();
 				break;
-			case 2:
+			case 1002:
 				GameType = GAME_TYPE.SpeechRecognizer;
 				ShowPictures (1);
 				ShowVoice ();
 				break;
-			case 3:
+			case 1003:
 				GameType = GAME_TYPE.HWR;
 				ShowPictures (1);
 				ShowHWR ();
@@ -838,12 +919,42 @@ public class MainGameController : MonoBehaviour
 		}, () => 
 		{
 			LocalStorage.IsSwitchBG = true;
-			Application.LoadLevel ("SelectScene");
+			if(LocalStorage.accountType == AccountType.RandomPlay)
+			{
+				Application.LoadLevel ("Login");
+			}
+			else
+			{
+				Application.LoadLevel ("SelectScene");
+			}
 		});
 	}
 
 	void SubmitLogs (bool IsTotal)
 	{
+		if (LocalStorage.accountType == AccountType.RandomPlay)
+		{
+			return;
+		}
+		var wf = new WWWForm ();
+		wf.AddField ("Id", GetCurrentQuestion.Id);
+		wf.AddField ("StudentPaperId", GetCurrentQuestion.studentPaperId);
+		wf.AddField ("PaperDetailId", GetCurrentQuestion.paperDetailId);
+		if (LocalStorage.accountType == AccountType.Teacher)
+		{
+			wf.AddField ("SubmitterId", practiceStudentID.Count == 0 ? 1 : practiceStudentID [practiceStudentID.Count - 1]);
+			wf.AddField ("SubmitterType", LocalStorage.accountType == AccountType.Teacher ? 1 : 0);
+		}
+		else
+		{
+			wf.AddField ("SubmitterId", LocalStorage.StudentID);
+			wf.AddField ("SubmitterType", 0);
+		}
+		wf.AddField ("QuestionId", GetCurrentQuestion.questionId);
+		wf.AddField ("Answer", GetCurrentQuestion.paperDetailId);
+		wf.AddField ("SpentTime", ((int)Time.time - startPerAnswerTime).ToString ());
+
+		WWWProvider.Instance.StartWWWCommunication ("/test/submitAnswer", wf);
 //		string submitType = "";
 //		var jc = new JSONClass ();
 //		if (isRandomQuestion)
@@ -1009,7 +1120,7 @@ public class MainGameController : MonoBehaviour
 
 	void OnDestroy ()
 	{
-		SubmitLogs (true);
+		//SubmitLogs (true);
 		if (SoundPlay.Instance != null)
 		{
 			SoundPlay.Instance.DestroyiEnumeratorList ();

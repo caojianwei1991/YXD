@@ -40,16 +40,18 @@ public class UICenterOnClick : MonoBehaviour
 
 		if (Mathf.Abs (localOffset.x) < 1)
 		{
-
+			LocalStorage.SelectWeek = weekIndex;
+			PaperList.Show ();
 		}
 	}
 
+	public int weekIndex;
 	UIScrollView mScrollView;
 	UIPanel mPanel;
 	float width;
 	Vector3 localOffset;
 
-	void Awake ()
+	void Start ()
 	{
 		mPanel = transform.parent.parent.GetComponent<UIPanel> ();
 		mScrollView = mPanel.GetComponent<UIScrollView> ();

@@ -190,5 +190,6 @@ public class SoundPlay : MonoBehaviour
 				StopCoroutine (iEnumeratorList [i]);
 			}
 		}
+		DestroyImmediate (gameObject);
 	}
 }

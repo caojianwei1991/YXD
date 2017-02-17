@@ -57,8 +57,8 @@ public class ClassList : MonoBehaviour
 			{
 				LocalStorage.SelectClassID = jsonNode [index] ["id"].AsInt;
 				LocalStorage.SelectClassName = jsonNode [index] ["name"].Value;
-				Destroy (gameObject);
 				PaperList.Show ();
+				Destroy (gameObject);
 			}));
 		}
 		for (int i = 0; i < 30 - jsonNode.Count; i++)

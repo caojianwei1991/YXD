@@ -44,15 +44,16 @@ public class SignUp : MonoBehaviour
 		}
 		var wf = new WWWForm ();
 		wf.AddField ("StudentId", inputNumber.value.Trim ());
-		wf.AddField ("Password", inputPassword.value.Trim ());
+		wf.AddField ("Password", WWWProvider.GetMD5 (inputPassword.value.Trim ()));
 		wf.AddField ("VerificationCode", inputCode.value.Trim ());
-		WWWProvider.Instance.StartWWWCommunication ("/student/login", wf, (x, y) =>
+		WWWProvider.Instance.StartWWWCommunication ("/student/register", wf, (x, y) =>
 		{
 			Destroy (gameObject);
 			var jn = JSONNode.Parse (y);
 			if (jn ["result"].AsInt == 1)
 			{
 				LocalStorage.accountType = AccountType.Student;
+				LocalStorage.StudentID = jn ["data"] ["id"].AsInt;
 				Application.LoadLevel ("SelectScene");
 			}
 			else

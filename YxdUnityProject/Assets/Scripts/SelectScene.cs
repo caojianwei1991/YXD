@@ -11,7 +11,7 @@ public class SelectScene : MonoBehaviour
 	void Awake ()
 	{
 		redHeartLabel = transform.FindChild ("RedHeart/Label").GetComponent<UILabel> ();
-		transform.FindChild ("RedHeart").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => Share.Show ()));
+		//transform.FindChild ("RedHeart").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => Share.Show ()));
 		transform.FindChild ("About").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => RequestAboutContent ()));
 		transform.FindChild ("Back").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
 		{
@@ -41,11 +41,11 @@ public class SelectScene : MonoBehaviour
 		var jc = new JSONClass ();
 		jc.Add ("SchoolID", LocalStorage.SchoolID);
 		jc.Add ("APPStatus", LocalStorage.SchoolID == "" ? "1" : "0");
-		WWWProvider.Instance.StartWWWCommunication ("GetAboutText", jc, (x, y) =>
-		{
-			var jn = JSONNode.Parse (y);
-			Alert.ShowAbout (jn ["aboutText"].Value);
-		});
+//		WWWProvider.Instance.StartWWWCommunication ("GetAboutText", jc, (x, y) =>
+//		{
+//			var jn = JSONNode.Parse (y);
+//			Alert.ShowAbout (jn ["aboutText"].Value);
+//		});
 	}
 	
 	void Start ()
@@ -54,11 +54,18 @@ public class SelectScene : MonoBehaviour
 		SoundPlay.Instance.PlayBG ();
 		if (LocalStorage.accountType == AccountType.Teacher)
 		{
-			ClassList.Show ();
+			if(LocalStorage.SelectClassID == -1)
+			{
+				ClassList.Show ();
+			}
+			else
+			{
+				PaperList.Show ();
+			}
 		}
 		else
 		{
-			PaperList.Show ();
+			StartCoroutine (RefreshWeeks ());
 		}
 //		if (LocalStorage.Language == "1")
 //		{
@@ -72,25 +79,31 @@ public class SelectScene : MonoBehaviour
 //		}
 	}
 
-	void RefreshWeeks (JSONNode jsonNode)
+	IEnumerator RefreshWeeks ()
 	{
 		for (int i = 0; i < content.transform.childCount; i++)
 		{
 			Destroy (content.transform.GetChild (i).gameObject);
 		}
-		for (int i = 0; i < jsonNode.Count; i++)
+		int width = -3150;
+		Transform centerTransform = null;
+		for (int i = 1; i < 21; i++)
 		{
 			int index = i;
 			var tran = NGUITools.AddChild (content, (GameObject)Resources.Load ("Prefabs/SceneListItem")).transform;
-			tran.FindChild ("Label").GetComponent<UILabel> ().text = jsonNode [index] ["paperName"].Value;
-			UIButton ub = tran.GetComponent<UIButton> ();
-			ub.onClick.Clear ();
-			ub.onClick.Add (new EventDelegate (() => 
+			if (index == LocalStorage.SelectWeek)
 			{
-				
-			}));
+				centerTransform = tran;
+			}
+			tran.localPosition = new Vector3 (width, 0, 0);
+			width += 450;
+			tran.FindChild ("Label").GetComponent<UILabel> ().text = string.Format ("{0}", index);
+			UICenterOnClick uc = tran.GetComponent<UICenterOnClick> ();
+			uc.weekIndex = index;
 		}
-		content.GetComponent<UIWrapContent> ().WrapContent ();
-		content.transform.parent.GetComponent<UIScrollView> ().ResetPosition ();
+		content.GetComponent<UIWrapContent> ().SortBasedOnScrollMovement ();
+		yield return new WaitForEndOfFrame ();
+		content.GetComponent<UICenterOnChild> ().CenterOn (centerTransform);
+		//content.transform.parent.GetComponent<UIScrollView> ().ResetPosition ();
 	}
 }
