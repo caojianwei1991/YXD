@@ -98,7 +98,7 @@ public class MainGameController : MonoBehaviour
 		transform.FindChild ("Back").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => 
 		{
 			LocalStorage.IsSwitchBG = true;
-			if(LocalStorage.accountType == AccountType.RandomPlay)
+			if (LocalStorage.accountType == AccountType.RandomPlay)
 			{
 				Application.LoadLevel ("Login");
 			}
@@ -236,6 +236,8 @@ public class MainGameController : MonoBehaviour
 		answer.mTransform = uiQuestions [0].transform;
 	}
 
+	string submitAnswer = "";
+
 	public bool JudgeIsMatch (string CharacterID = "")
 	{
 		clickNum ++;
@@ -251,24 +253,32 @@ public class MainGameController : MonoBehaviour
 					break;
 				}
 			}
+			if (clickNum <= 4)
+			{
+				submitAnswer += CharacterID;
+			}
 			if (isFinish)
 			{
 				AddScoreAnimation ();
 				uiCharacter.PlayResultSound (Random.Range (4, 7), false, () =>
 				{
-					AllRight ();
+					AllRight (submitAnswer);
 				});
 			}
 		}
 		else
 		{
+			if (submitAnswer == "")
+			{
+				submitAnswer = CharacterID;
+			}
 			if (answer.CharacterID == CharacterID)
 			{
 				isAllRight = true;
 				AddScoreAnimation ();
 				uiCharacter.PlayResultSound (Random.Range (4, 7), false, () =>
 				{
-					AllRight ();
+					AllRight (submitAnswer);
 				});
 			}
 			else
@@ -299,10 +309,10 @@ public class MainGameController : MonoBehaviour
 		return isAllRight;
 	}
 
-	public void AllRight ()
+	public void AllRight (string result = "")
 	{
 		TotalQuestions++;
-		SubmitLogs (false);
+		SubmitLogs (false, result);
 		SwitchQuestion ();
 	}
 
@@ -371,6 +381,10 @@ public class MainGameController : MonoBehaviour
 		clickNum ++;
 		string[] str = result.Split (',');
 		float score = float.Parse (str [1]);
+		if (submitAnswer == "")
+		{
+			submitAnswer = score > 60 ? answer.Name : str [0];
+		}
 		if (score > 60)
 		{
 			var jc = new JSONClass ();
@@ -383,7 +397,7 @@ public class MainGameController : MonoBehaviour
 			uiCharacter.PlayResultSound (Random.Range (4, 7), false, () =>
 			{
 				voice.isEnabled = true;
-				AllRight ();
+				AllRight (submitAnswer);
 			});
 		}
 		else
@@ -462,6 +476,11 @@ public class MainGameController : MonoBehaviour
 			RecogText = str [0];
 		}
 
+		if (submitAnswer == "")
+		{
+			submitAnswer = RecogText;
+		}
+
 		if (wordHWR == RecogText)
 		{
 			var jc = new JSONClass ();
@@ -473,7 +492,7 @@ public class MainGameController : MonoBehaviour
 			AddScoreAnimation ((RecogScore * 0.1f).ToString ());
 			uiCharacter.PlayResultSound (Random.Range (4, 7), false, () =>
 			{
-				AllRight ();
+				AllRight (submitAnswer);
 			});
 		}
 		else
@@ -590,7 +609,7 @@ public class MainGameController : MonoBehaviour
 			item.questionId = questionId;
 			item.studentPaperId = jsonNode [index] ["studentPaperId"].AsInt;
 			item.paperDetailId = jsonNode [index] ["paperDetailId"].AsInt;
-			item.gameType = 1001;//jsonNode [index] ["gameId"].AsInt;
+			item.gameType = jsonNode [index] ["gameId"].AsInt;
 			questionDic [questionId] = item;
 			var wf1 = new WWWForm ();
 			wf1.AddField ("QuestionId", questionId);
@@ -831,6 +850,7 @@ public class MainGameController : MonoBehaviour
 		//questionIndex++;
 		startPerAnswerTime = (int)Time.time;
 		clickNum = 0;
+		submitAnswer = "";
 		startAnswerTime = System.DateTime.Now;
 	}
 
@@ -919,7 +939,7 @@ public class MainGameController : MonoBehaviour
 		}, () => 
 		{
 			LocalStorage.IsSwitchBG = true;
-			if(LocalStorage.accountType == AccountType.RandomPlay)
+			if (LocalStorage.accountType == AccountType.RandomPlay)
 			{
 				Application.LoadLevel ("Login");
 			}
@@ -930,7 +950,7 @@ public class MainGameController : MonoBehaviour
 		});
 	}
 
-	void SubmitLogs (bool IsTotal)
+	void SubmitLogs (bool IsTotal, string result)
 	{
 		if (LocalStorage.accountType == AccountType.RandomPlay)
 		{
@@ -951,7 +971,24 @@ public class MainGameController : MonoBehaviour
 			wf.AddField ("SubmitterType", 0);
 		}
 		wf.AddField ("QuestionId", GetCurrentQuestion.questionId);
-		wf.AddField ("Answer", GetCurrentQuestion.paperDetailId);
+		wf.AddField ("Answer", result);
+		bool IsCorrect;
+		int answerCount = clickNum;
+		if (GameType == GAME_TYPE.LinkPicture)
+		{
+			IsCorrect = clickNum == 4;
+			answerCount = Mathf.CeilToInt (clickNum / 4.0f);
+		}
+		else
+		{
+			IsCorrect = clickNum == 1;
+		}
+		if (IsCorrect)
+		{
+			LocalStorage.Score ++;
+		}
+		wf.AddField ("IsCorrect", IsCorrect ? 1 : 0);
+		wf.AddField ("AnswerCount", answerCount);
 		wf.AddField ("SpentTime", ((int)Time.time - startPerAnswerTime).ToString ());
 
 		WWWProvider.Instance.StartWWWCommunication ("/test/submitAnswer", wf);

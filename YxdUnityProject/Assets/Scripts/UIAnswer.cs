@@ -136,7 +136,7 @@ public class UIAnswer : MonoBehaviour
 						{
 							SoundPlay.Instance.PlayLocal (Random.Range (21, 23), IsEnglish);
 						}
-						mgc.JudgeIsMatch ();
+						mgc.JudgeIsMatch (uq.CharacterID + "," + CharacterID + ";");
 						break;
 					}
 				}
