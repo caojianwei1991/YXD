@@ -41,7 +41,7 @@ public class Download : MonoBehaviour
 		Screen.sleepTimeout = SleepTimeout.NeverSleep;
 		try
 		{
-			//lastJsonNode = jsonNode = JSONNode.LoadFromCompressedFile (sdAssetList);
+			lastJsonNode = jsonNode = JSONNode.LoadFromCompressedFile (sdAssetList);
 			UpdateCharactersInfo ();
 		}
 		catch (Exception e)
@@ -73,7 +73,7 @@ public class Download : MonoBehaviour
 		else
 		{
 			var wf = new WWWForm ();
-			wf.AddField ("DateTime", "1970-01-01 00:00:00");
+			wf.AddField ("DateTime", jsonNode ["LastUpdateTime"].Value);
 			WWWProvider.Instance.StartWWWCommunication ("/character/updateCheck", wf, DownLoadCharactersInfo);
 		}
 	}
@@ -155,12 +155,12 @@ public class Download : MonoBehaviour
 		StringBuilder sdFile = new StringBuilder ();
 		isDownLoadFail = false;
 		string currentDownloadURL = jsonNode ["CurrentDownloadURL"].Value;
-		//string lastDownloadURL = lastJsonNode ["CurrentDownloadURL"].Value;
+		string lastDownloadURL = lastJsonNode ["CurrentDownloadURL"].Value;
 		assetNum = jsonNode ["AssetNum"].AsFloat;
 		jsonNode = jsonNode ["ArrayData"]["data"];
 		if (isUpdateNeeded)
 		{
-			//lastJsonNode = lastJsonNode ["ArrayData"]["data"];
+			lastJsonNode = lastJsonNode ["ArrayData"]["data"];
 		}
 
 		//开始下载.....
@@ -190,7 +190,7 @@ public class Download : MonoBehaviour
 					isUpdate = DateTime.ParseExact (jn ["updateTime"].Value, timeFormat, null) > DateTime.ParseExact (lastJn ["updateTime"].Value, timeFormat, null);
 				}
 			}
-			isUpdate = isUpdate/* || currentDownloadURL != lastDownloadURL*/;
+			isUpdate = isUpdate || currentDownloadURL != lastDownloadURL;
 			AssetData.Add (id, ASSET_TYPE.Name, null, jn);
 			for (int j = 0; j < sdCachePath.Length; j++)
 			{
