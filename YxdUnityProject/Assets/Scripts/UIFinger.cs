@@ -23,7 +23,7 @@ public class UIFinger : MonoBehaviour
 	void Awake ()
 	{
 		defaultPos = transform.localPosition;
-		mUITexture = GetComponent<UITexture> ();
+		mUITexture = transform.FindChild ("Finger").GetComponent<UITexture> ();
 		mgc = transform.root.GetComponent<MainGameController> ();
 		for (int i = 0; i < mTextures.Length; i++)
 		{
@@ -45,6 +45,10 @@ public class UIFinger : MonoBehaviour
 	public void Show ()
 	{
 		gameObject.SetActive (true);
+		if (mAnimation != null)
+		{
+			StopCoroutine (mAnimation);
+		}
 		mAnimation = StartAnimation ();
 		StartCoroutine (mAnimation);
 	}
@@ -52,6 +56,21 @@ public class UIFinger : MonoBehaviour
 	public void SetPos (Vector3 Pos)
 	{
 		transform.localPosition = Pos;
+	}
+	
+	public IEnumerator SetPos (Transform t)
+	{
+		yield return new WaitForSeconds(0.1f);
+		Vector3 v3 = t.position;
+		UITexture ut = t.GetComponent<UITexture> ();
+		v3.x = v3.x + ut.width * 0.5f * t.lossyScale.x;
+		v3.y = v3.y + ut.height * 0.5f * t.lossyScale.y;
+		transform.position = v3;
+	}
+
+	public void ItweenMoveTo (Vector3 Position)
+	{
+		iTween.MoveTo (gameObject, iTween.Hash ("position", transform.InverseTransformVector (Position), "islocal", true, "time", 1, "easetype", iTween.EaseType.easeOutBack));
 	}
 
 	IEnumerator StartAnimation ()

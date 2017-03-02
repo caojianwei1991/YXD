@@ -103,6 +103,14 @@ public class UIQuestion : MonoBehaviour
 		mUIButton.isEnabled = IsEnabled;
 	}
 
+	void OnClick ()
+	{
+		Vector3 v3 = transform.position;
+		v3.x = v3.x + mUITexture.width * 0.5f * mUITexture.transform.lossyScale.x;
+		v3.y = v3.y + mUITexture.height * 0.5f * mUITexture.transform.lossyScale.y;
+		mgc.uiFinger.ItweenMoveTo (v3);
+	}
+
 	public void SetCharacterID (string Character_ID)
 	{
 		gameObject.SetActive (true);

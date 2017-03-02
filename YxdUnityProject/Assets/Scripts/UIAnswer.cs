@@ -10,7 +10,7 @@ public class UIAnswer : MonoBehaviour
 	UIButton mUIButton;
 	UILabel mUILabel;
 	MainGameController mgc;
-	UITexture animUITexture;
+	UITexture animUITexture, mUITexture;
 	IEnumerator mAnimation;
 	Texture[] characterTexture = new Texture[2];
 
@@ -78,6 +78,7 @@ public class UIAnswer : MonoBehaviour
 		mUIDragObject = GetComponent<UIDragObject> ();
 		mUIButton = GetComponent<UIButton> ();
 		mUILabel = mTransform.FindChild ("Label").GetComponent<UILabel> ();
+		mUITexture = GetComponent<UITexture> ();
 		animUITexture = mTransform.FindChild ("Texture").GetComponent<UITexture> ();
 		mgc = mTransform.root.GetComponent<MainGameController> ();
 		for (int i = 0; i < characterTexture.Length; i++)
@@ -147,10 +148,18 @@ public class UIAnswer : MonoBehaviour
 			}
 			else
 			{
-				mgc.uiFinger.Init ();
+				//mgc.uiFinger.Init ();
 				iTween.Stop (gameObject);
 			}
 		}
+	}
+
+	void OnClick ()
+	{
+		Vector3 v3 = mTransform.position;
+		v3.x = v3.x + mUITexture.width * 0.5f * mUITexture.transform.lossyScale.x;
+		v3.y = v3.y + mUITexture.height * 0.5f * mUITexture.transform.lossyScale.y;
+		mgc.uiFinger.ItweenMoveTo (v3);
 	}
 
 	public void SetCharacterID (string Character_ID)
@@ -162,7 +171,7 @@ public class UIAnswer : MonoBehaviour
 		EventDelegate.Set (mUIButton.onClick, delegate
 		{
 			SoundPlay.Instance.Play (CharacterID, IsEnglish);
-			mgc.uiFinger.Init ();
+			//mgc.uiFinger.Init ();
 			if (mgc.GameType == GAME_TYPE.ReadPicture)
 			{
 				mgc.SetAllAnswersBtnIsEnable (false);

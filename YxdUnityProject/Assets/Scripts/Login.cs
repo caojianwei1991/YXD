@@ -27,6 +27,19 @@ public class Login : MonoBehaviour
 		btnRandomPlay.onClick.Add (new EventDelegate (() => RandomPlay ()));
 		cnUIToggle.onChange.Add (new EventDelegate (() => ChangeToggle ()));
 		transform.FindChild ("Instruction").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => TeacherLogin.Show ()));
+		inputUserName.onChange.Add (new EventDelegate (() =>
+		{
+			string str = PlayerPrefs.GetString ("InputUserName", "");
+			string str1 = inputUserName.value.Trim ();
+			if (str != "" && str1 != "")
+			{
+				if (str1.Length > str.Length || str.Substring (0, str1.Length) != str1)
+				{
+					inputPassword.value = "";
+					inputUserName.onChange.Clear ();
+				}
+			}
+		}));
 		LocalStorage.SchoolID = "";
 		//LocalStorage.StudentID = "";
 		LocalStorage.Score = 0;
@@ -95,6 +108,8 @@ public class Login : MonoBehaviour
 			}
 			else
 			{
+				inputUserName.value = "";
+				inputPassword.value = "";
 				Alert.Show ("用户名或秘密错误，是否忘记密码？", () => ResetPassword.Show (), () => {});
 			}
 		});

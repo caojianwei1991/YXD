@@ -89,6 +89,8 @@ public class MainGameController : MonoBehaviour
 
 	public GameObject finishPractice{ get; set; }
 
+	public UILabel studentName{ get; set; }
+
 	void Awake ()
 	{
 		uiQuestions = new UIQuestion[4];
@@ -147,6 +149,7 @@ public class MainGameController : MonoBehaviour
 		{
 			finishPractice.SetActive (false);
 			practiceStudentID.Clear ();
+			studentName.text = "";
 		}));
 
 		tran = transform.FindChild ("FinishClass");
@@ -156,6 +159,8 @@ public class MainGameController : MonoBehaviour
 			LocalStorage.IsSwitchBG = true;
 			Application.LoadLevel ("SelectScene");
 		}));
+
+		studentName = transform.FindChild ("StudentName").GetComponent<UILabel> ();
 	}
 
 	void Start ()
@@ -204,6 +209,8 @@ public class MainGameController : MonoBehaviour
 		uiCharacter.Init ();
 
 		uiFinger.Init ();
+
+		studentName.text = "";
 	}
 
 	void ShowPictures (int Num)
@@ -335,7 +342,7 @@ public class MainGameController : MonoBehaviour
 		speaker.gameObject.SetActive (true);
 		EventDelegate.Set (speaker.onClick, delegate
 		{
-			uiFinger.Init ();
+			//uiFinger.Init ();
 			speaker.isEnabled = false;
 			var ie = SpeakerAnim ();
 			iEnumeratorList.Add (ie);
@@ -364,13 +371,12 @@ public class MainGameController : MonoBehaviour
 
 	void ShowVoice ()
 	{
-		uiFinger.Show ();
-		uiFinger.SetPos (new Vector3 (256, -310, 0));
+		uiFinger.SetPos (new Vector3 (240, -147, 0));
 		voice.gameObject.SetActive (true);
 		EventDelegate.Set (voice.onClick, delegate
 		{
 			voice.isEnabled = false;
-			uiFinger.Init ();
+			//uiFinger.Init ();
 		});
 	}
 
@@ -383,7 +389,7 @@ public class MainGameController : MonoBehaviour
 		float score = float.Parse (str [1]);
 		if (submitAnswer == "")
 		{
-			submitAnswer = score > 60 ? answer.Name : str [0];
+			submitAnswer = score > 60 ? answer.Name : str [0] + "," + score;
 		}
 		if (score > 60)
 		{
@@ -393,7 +399,7 @@ public class MainGameController : MonoBehaviour
 			jc.Add ("RecogText", str [0]);
 			jc.Add ("RecogScore", str [1]);
 			//WWWProvider.Instance.StartWWWCommunication ("GetCorrectAnswer", jc);
-			AddScoreAnimation ((score * 0.1f).ToString ("F0"));
+			AddScoreAnimation ();
 			uiCharacter.PlayResultSound (Random.Range (4, 7), false, () =>
 			{
 				voice.isEnabled = true;
@@ -410,6 +416,7 @@ public class MainGameController : MonoBehaviour
 				});
 			});
 		}
+		StartCoroutine (ShowScore (string.Format ("结果:{0}, 得分:{1}", score > 60 ? answer.Name : str [0], score)));
 	}
 
 #endregion
@@ -434,6 +441,7 @@ public class MainGameController : MonoBehaviour
 			string temp = answer.Name.Remove (subIndex, 1);
 			mHWRLabel.text = temp.Insert (subIndex, "（ ）");
 		}
+		StartCoroutine (uiFinger.SetPos (mHWR.transform));
 
 		EventDelegate.Set (mHWR.onClick, delegate
 		{
@@ -478,7 +486,7 @@ public class MainGameController : MonoBehaviour
 
 		if (submitAnswer == "")
 		{
-			submitAnswer = RecogText;
+			submitAnswer = RecogText + "," + RecogScore;
 		}
 
 		if (wordHWR == RecogText)
@@ -489,7 +497,7 @@ public class MainGameController : MonoBehaviour
 			jc.Add ("RecogText", RecogText);
 			jc.Add ("RecogScore", RecogScore.ToString ());
 			//WWWProvider.Instance.StartWWWCommunication ("GetCorrectAnswer", jc);
-			AddScoreAnimation ((RecogScore * 0.1f).ToString ());
+			AddScoreAnimation ();
 			uiCharacter.PlayResultSound (Random.Range (4, 7), false, () =>
 			{
 				AllRight (submitAnswer);
@@ -515,6 +523,7 @@ public class MainGameController : MonoBehaviour
 				});
 			});
 		}
+		StartCoroutine (ShowScore (string.Format ("结果:{0}, 得分:{1}", RecogText, RecogScore)));
 	}
 
 #endregion
@@ -523,11 +532,12 @@ public class MainGameController : MonoBehaviour
 	
 	void ListenPicture ()
 	{
+		uiFinger.SetPos (new Vector3 (120, -332, 0));
 		ShowPictures (4);
 		speaker.gameObject.SetActive (true);
 		EventDelegate.Set (speaker.onClick, delegate
 		{
-			uiFinger.Init ();
+			//uiFinger.Init ();
 			speaker.isEnabled = false;
 			IEnumerator ie = SpeakerAnim ();
 			iEnumeratorList.Add (ie);
@@ -830,13 +840,11 @@ public class MainGameController : MonoBehaviour
 				break;
 			case GAME_TYPE.HWR:
 				characterSoundID = LocalStorage.SceneID == "0" ? 2 : 13;
-				uiFinger.SetPos (new Vector3 (356, -456, 0));
 				uiCharacter.Show (false);
 				break;
 			case GAME_TYPE.ListenPicture:
 				SoundPlay.PauseBG (true);
 				characterSoundID = 16;
-				uiFinger.SetPos (new Vector3 (180, -444, 0));
 				uiCharacter.Show (true);
 				break;
 			case GAME_TYPE.LinkPicture:
@@ -1116,7 +1124,7 @@ public class MainGameController : MonoBehaviour
 		}
 	}
 
-	void AddScoreAnimation (string Score = "")
+	void AddScoreAnimation ()
 	{
 		bool IsCorrect;
 		if (GameType == GAME_TYPE.LinkPicture)
@@ -1139,10 +1147,6 @@ public class MainGameController : MonoBehaviour
 				Destroy (obj);
 				redHeartLabel.text = score.ToString ();
 			});
-			if (Score != "")
-			{
-				StartCoroutine (ShowScore (Score));
-			}
 		}
 	}
 
@@ -1151,7 +1155,7 @@ public class MainGameController : MonoBehaviour
 		GameObject obj = NGUITools.AddChild (gameObject, (GameObject)Resources.Load ("Prefabs/Score"));
 		obj.transform.localPosition = new Vector3 (0, -100, 0);
 		obj.GetComponent<UILabel> ().text = Score;
-		yield return new WaitForSeconds (2.5f);
+		yield return new WaitForSeconds (5f);
 		Destroy (obj);
 	}
 

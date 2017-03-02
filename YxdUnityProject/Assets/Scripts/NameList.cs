@@ -61,6 +61,7 @@ public class NameList : MonoBehaviour
 			ub.onClick.Clear ();
 			ub.onClick.Add (new EventDelegate (() => 
 			{
+				mgc.studentName.text = jsonNode [index] ["studentName"].Value;
 				mgc.practiceStudentID.Add (jsonNode [index] ["studentId"].AsInt);
 				mgc.finishPractice.SetActive(true);
 				Destroy (gameObject);

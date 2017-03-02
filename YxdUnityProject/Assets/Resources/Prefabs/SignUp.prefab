@@ -1899,7 +1899,7 @@ MonoBehaviour:
   keepCrispWhenShrunk: 0
   mTrueTypeFont: {fileID: 12800000, guid: 0967a0d75b8208148b4c03b1aa84e844, type: 3}
   mFont: {fileID: 0}
-  mText: "\u8BF7\u8F93\u5165\u7528\u6237\u540D"
+  mText: "\u8BF7\u8F93\u5165\u59D3\u540D"
   mFontSize: 60
   mFontStyle: 0
   mAlignment: 0
@@ -2049,7 +2049,7 @@ MonoBehaviour:
   autoResizeBoxCollider: 1
   hideIfOffScreen: 0
   keepAspectRatio: 0
-  aspectRatio: 1.33246756
+  aspectRatio: 1.33160281
   mType: 1
   mFillDirection: 4
   mFillAmount: 1
