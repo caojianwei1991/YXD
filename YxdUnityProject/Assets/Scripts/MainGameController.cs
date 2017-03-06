@@ -267,7 +267,7 @@ public class MainGameController : MonoBehaviour
 			if (isFinish)
 			{
 				AddScoreAnimation ();
-				uiCharacter.PlayResultSound (Random.Range (4, 7), false, () =>
+				uiCharacter.PlayResultSound (Random.Range (31, 34), false, () =>
 				{
 					AllRight (submitAnswer);
 				});
@@ -283,7 +283,7 @@ public class MainGameController : MonoBehaviour
 			{
 				isAllRight = true;
 				AddScoreAnimation ();
-				uiCharacter.PlayResultSound (Random.Range (4, 7), false, () =>
+				uiCharacter.PlayResultSound (Random.Range (31, 34), false, () =>
 				{
 					AllRight (submitAnswer);
 				});
@@ -293,20 +293,20 @@ public class MainGameController : MonoBehaviour
 				isAllRight = false;
 				if (GameType == GAME_TYPE.ListenPicture)
 				{
-					uiCharacter.PlayResultSound (Random.Range (7, 9), false, () =>
+					uiCharacter.PlayResultSound (Random.Range (34, 37), false, () =>
 					{
-						uiCharacter.PlayResultSound (17, true, () =>
-						{
-							uiCharacter.PlayResultSound (18, false, () =>
-							{
+//						uiCharacter.PlayResultSound (17, true, () =>
+//						{
+//							uiCharacter.PlayResultSound (18, false, () =>
+//							{
 								SetAllQuestionsBtnIsEnable (true);
-							});
-						}, CharacterID);
+//							});
+//						}, CharacterID);
 					});
 				}
 				else if (GameType == GAME_TYPE.ReadPicture)
 				{
-					uiCharacter.PlayResultSound (9, false, () =>
+					uiCharacter.PlayResultSound (Random.Range (34, 37), false, () =>
 					{
 
 					});
@@ -400,7 +400,7 @@ public class MainGameController : MonoBehaviour
 			jc.Add ("RecogScore", str [1]);
 			//WWWProvider.Instance.StartWWWCommunication ("GetCorrectAnswer", jc);
 			AddScoreAnimation ();
-			uiCharacter.PlayResultSound (Random.Range (4, 7), false, () =>
+			uiCharacter.PlayResultSound (Random.Range (31, 34), false, () =>
 			{
 				voice.isEnabled = true;
 				AllRight (submitAnswer);
@@ -408,12 +408,12 @@ public class MainGameController : MonoBehaviour
 		}
 		else
 		{
-			uiCharacter.PlayResultSound (Random.Range (7, 9), false, () =>
+			uiCharacter.PlayResultSound (Random.Range (34, 37), false, () =>
 			{
-				uiCharacter.PlayResultSound (12, true, () =>
-				{
-					voice.GetComponent<SpeechRecognizer> ().OnPress (true);
-				});
+//				uiCharacter.PlayResultSound (12, true, () =>
+//				{
+//					voice.GetComponent<SpeechRecognizer> ().OnPress (true);
+//				});
 			});
 		}
 		StartCoroutine (ShowScore (string.Format ("结果:{0}, 得分:{1}", score > 60 ? answer.Name : str [0], score)));
@@ -498,17 +498,17 @@ public class MainGameController : MonoBehaviour
 			jc.Add ("RecogScore", RecogScore.ToString ());
 			//WWWProvider.Instance.StartWWWCommunication ("GetCorrectAnswer", jc);
 			AddScoreAnimation ();
-			uiCharacter.PlayResultSound (Random.Range (4, 7), false, () =>
+			uiCharacter.PlayResultSound (Random.Range (31, 34), false, () =>
 			{
 				AllRight (submitAnswer);
 			});
 		}
 		else
 		{
-			uiCharacter.PlayResultSound (Random.Range (7, 9), false, () =>
+			uiCharacter.PlayResultSound (Random.Range (34, 37), false, () =>
 			{
-				uiCharacter.PlayResultSound (14, false, () =>
-				{
+//				uiCharacter.PlayResultSound (14, false, () =>
+//				{
 					mHWR.gameObject.SetActive (true);
 					string text = "";
 					if (answer.IsEnglish)
@@ -520,7 +520,7 @@ public class MainGameController : MonoBehaviour
 						text = mHWRLabel.text.Replace ("（ ）", "（" + wordHWR + "）");
 					}
 					mHWRLabel.text = text;
-				});
+//				});
 			});
 		}
 		StartCoroutine (ShowScore (string.Format ("结果:{0}, 得分:{1}", RecogText, RecogScore)));
@@ -830,25 +830,28 @@ public class MainGameController : MonoBehaviour
 		switch (GameType)
 		{
 			case GAME_TYPE.ReadPicture:
-				characterSoundID = LocalStorage.SceneID == "0" ? 2 : 3;
+				//characterSoundID = LocalStorage.SceneID == "0" ? 2 : 3;
+				characterSoundID = 30;
 				uiCharacter.Show (false);
 				break;
 			case GAME_TYPE.SpeechRecognizer:
 				SoundPlay.PauseBG (true);
-				characterSoundID = 10;
+				characterSoundID = 29;
 				uiCharacter.Show (false);
 				break;
 			case GAME_TYPE.HWR:
-				characterSoundID = LocalStorage.SceneID == "0" ? 2 : 13;
+				//characterSoundID = LocalStorage.SceneID == "0" ? 2 : 13;
+				characterSoundID = 28;
 				uiCharacter.Show (false);
 				break;
 			case GAME_TYPE.ListenPicture:
 				SoundPlay.PauseBG (true);
-				characterSoundID = 16;
+				characterSoundID = 27;
 				uiCharacter.Show (true);
 				break;
 			case GAME_TYPE.LinkPicture:
-				characterSoundID = LocalStorage.SceneID == "0" ? 19 : 20;
+				//characterSoundID = LocalStorage.SceneID == "0" ? 19 : 20;
+				characterSoundID = 26;
 				uiCharacter.Show (false);
 				break;
 			default:

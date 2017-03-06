@@ -58,7 +58,20 @@ public class SoundPlay : MonoBehaviour
 		"21-哎呀，再来一次吧",
 		"22-错啦，我不是这个",
 		"23-欢迎下次再来光临易学岛",
-		"24-你玩太久啦，先休息一下吧"
+		"24-你玩太久啦，先休息一下吧",
+		"1",//25欢迎来到易学岛
+		"2",//26请把答案拉到正确位置
+		"3",//27哪个图片是***
+		"4",//28把括号内的字写出来吧
+		"5",//29靠近屏幕说出我叫什么
+		"6",//30把图片名字选出来吧
+		"7",//31答对了
+		"8",//32你真聪明
+		"9",//33送你个爱心
+		"10",//34好像不对啊
+		"11",//35错了哦，继续加油
+		"12",//36错了，我不是这个
+		"13"//37欢迎再来易学岛
 	};
 	string[] bGSoundPaths = 
 	{
@@ -130,8 +143,15 @@ public class SoundPlay : MonoBehaviour
 	{
 		StringBuilder path = new StringBuilder ();
 		path.Append ("Sound/");
+		if(GameSoundID > 24)
+		{
+			path.Append ("20170306/");
+		}
 		path.Append (gameSoundPaths [GameSoundID]);
-		path.Append (IsEnglish ? "/E" : "/C");
+		if(GameSoundID <= 24)
+		{
+			path.Append (IsEnglish ? "/E" : "/C");
+		}
 		gameAudioSource.clip = (AudioClip)Resources.Load (path.ToString ());
 		gameAudioSource.Play ();
 		yield return new WaitForSeconds (gameAudioSource.clip.length);

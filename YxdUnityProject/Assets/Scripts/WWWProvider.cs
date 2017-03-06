@@ -122,7 +122,7 @@ public class WWWProvider : MonoBehaviour
 
 	public void Exit ()
 	{
-		SoundPlay.Instance.PlayLocal (23, LocalStorage.Language == "1");
+		SoundPlay.Instance.PlayLocal (37, LocalStorage.Language == "1");
 		Alert.Show ("是否要退出游戏？", () => Application.Quit (), () => {});
 	}
 

@@ -63,7 +63,7 @@ public class Login : MonoBehaviour
 			cnUIToggle.value = false;
 			enUIToggle.value = true;
 		}
-		SoundPlay.Instance.PlayLocal (1, enUIToggle.value, () => SoundPlay.Instance.PlayBG ());
+		SoundPlay.Instance.PlayLocal (25, enUIToggle.value, () => SoundPlay.Instance.PlayBG ());
 	}
 
 	void ChangeToggle ()
@@ -85,11 +85,11 @@ public class Login : MonoBehaviour
 	
 	void StartLogin ()
 	{
-		if (inputUserName.value.Trim ().Length < 1 || inputPassword.value.Trim ().Length < 1)
-		{
-			SignUp.Show ();
-			return;
-		}
+//		if (inputUserName.value.Trim ().Length < 1 || inputPassword.value.Trim ().Length < 1)
+//		{
+//			SignUp.Show ();
+//			return;
+//		}
 		var wf = new WWWForm ();
 		wf.AddField ("StudentId", inputUserName.value.Trim ());
 		wf.AddField ("Password", WWWProvider.GetMD5 (inputPassword.value.Trim ()));
@@ -113,6 +113,11 @@ public class Login : MonoBehaviour
 				Alert.Show ("用户名或秘密错误，是否忘记密码？", () => ResetPassword.Show (), () => {});
 			}
 		});
+	}
+
+	public void StartSignUp()
+	{
+		SignUp.Show ();
 	}
 
 	void EnterQuizPlay ()
