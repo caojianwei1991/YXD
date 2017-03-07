@@ -274,7 +274,7 @@ public class Download : MonoBehaviour
 			uiSlider.value = 1;
 			descriptionLabel.text = description.Contains ("加载") ? "资源加载完成！" : "资源下载完成！";
 			yield return new WaitForSeconds (1);
-			LocalStorage.IsSwitchBG = false;
+			//LocalStorage.IsSwitchBG = false;
 			Application.LoadLevel ("Login");
 		}
 	}

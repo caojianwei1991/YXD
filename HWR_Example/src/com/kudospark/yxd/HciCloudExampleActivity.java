@@ -213,6 +213,11 @@ public class HciCloudExampleActivity extends UnityPlayerActivity implements Spee
 		public void onError(SpeechError error) {
 			if(error != null) {	
 				ShowTip("error:"+ error.getErrorCode() + "," + error.getErrorDescription());
+				StringBuilder sb = new StringBuilder();
+				sb.append("错误");
+				sb.append(",");
+				sb.append(0);
+				UnityPlayer.UnitySendMessage("UI Root", "ReceiveIse", sb.toString());
 			} else {
 				Log.d(TAG, "evaluator over");
 			}
