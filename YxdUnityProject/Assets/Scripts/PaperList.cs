@@ -63,7 +63,7 @@ public class PaperList : MonoBehaviour
 			ub.onClick.Clear ();
 			ub.onClick.Add (new EventDelegate (() => 
 			{
-				LocalStorage.PaperID = jsonNode [index] ["paperId"].AsInt;
+				LocalStorage.PaperID = jsonNode [index] ["id"].AsInt;
 				Application.LoadLevel ("Zoo");
 			}));
 		}

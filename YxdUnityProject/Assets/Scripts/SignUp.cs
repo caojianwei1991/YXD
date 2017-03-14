@@ -10,12 +10,14 @@ public class SignUp : MonoBehaviour
 	int remainingTime = 60;
 	string validationCode;
 
+	//显示注册窗口
 	public static void Show ()
 	{
 		UIRoot uiRoot = GameObject.FindObjectOfType<UIRoot> ();
 		NGUITools.AddChild (uiRoot.gameObject, (GameObject)Resources.Load ("Prefabs/SignUp"));
 	}
 
+	//窗口初始化
 	void Awake ()
 	{
 		transform.FindChild ("Texture/No").GetComponent<UIButton> ().onClick.Add (new EventDelegate (() => Destroy (gameObject)));
@@ -25,6 +27,7 @@ public class SignUp : MonoBehaviour
 		mButton.onClick.Add (new EventDelegate (() => GetCode ()));
 	}
 
+	//注册按钮点击事件
 	void StartSignUp ()
 	{
 		if (inputUserName.value.Trim ().Length < 1 || inputNumber.value.Trim ().Length < 1 || inputCode.value.Trim ().Length < 1 || inputPassword.value.Trim ().Length < 1 || inputConfirm.value.Trim ().Length < 1)
@@ -63,6 +66,7 @@ public class SignUp : MonoBehaviour
 		});
 	}
 
+	//获取手机验证码
 	void GetCode ()
 	{
 		if (inputNumber.value.Trim ().Length != 11)
@@ -93,6 +97,7 @@ public class SignUp : MonoBehaviour
 		});
 	}
 
+	//60秒后重新可点击
 	void RefreshRemainTime ()
 	{
 		if (--remainingTime <= 0)

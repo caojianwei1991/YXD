@@ -32,6 +32,7 @@ public class SoundPlay : MonoBehaviour
 		}
 	}
 
+	//题目语音文件夹名路径
 	string[] gameSoundPaths = 
 	{
 		"",
@@ -73,6 +74,8 @@ public class SoundPlay : MonoBehaviour
 		"12",//36错了，我不是这个
 		"13"//37欢迎再来易学岛
 	};
+
+	//背景音乐文件夹名路径
 	string[] bGSoundPaths = 
 	{
 		"Alexandre Desplat - Whack-Bat Majorette Ensemble",
@@ -86,6 +89,8 @@ public class SoundPlay : MonoBehaviour
 		"金子隆博 - 二人でお酒"
 	};
 
+
+	//播放素材库里语音
 	public void Play (string CharacterID, bool IsEnglish, Action CallBack = null)
 	{
 		var ie = StartPlay (CharacterID, IsEnglish, CallBack);
@@ -101,8 +106,16 @@ public class SoundPlay : MonoBehaviour
 			AndroidJavaClass jc = new AndroidJavaClass ("com.unity3d.player.UnityPlayer");
 			AndroidJavaObject jo = jc.GetStatic<AndroidJavaObject> ("currentActivity");
 			isReceiveTts = false;
-			jo.Call ("StartTts", AssetData.GetNameByID (CharacterID, IsEnglish));
-			yield return StartCoroutine (WaitTtsResult ());
+			string str = AssetData.GetNameByID (CharacterID, IsEnglish);
+			if(string.IsNullOrEmpty(str))
+			{
+				yield return null;
+			}
+			else
+			{
+				jo.Call ("StartTts", str);
+				yield return StartCoroutine (WaitTtsResult ());
+			}
 		}
 		else
 		{
@@ -117,8 +130,9 @@ public class SoundPlay : MonoBehaviour
 		}
 	}
 
-	bool isReceiveTts;
 
+	bool isReceiveTts;
+	//接收语音合成处理
 	void ReceiveTts (string s)
 	{
 		isReceiveTts = true;
@@ -132,6 +146,7 @@ public class SoundPlay : MonoBehaviour
 		}
 	}
 
+	//播放app内置音乐
 	public void PlayLocal (int GameSoundID, bool IsEnglish, Action CallBack = null)
 	{
 		var ie = StartPlayLocal (GameSoundID, IsEnglish, CallBack);
@@ -162,7 +177,7 @@ public class SoundPlay : MonoBehaviour
 	}
 
 	int lastBGID = -1;
-
+	//播放背景音乐
 	public void PlayBG ()
 	{
 		if (!LocalStorage.IsSwitchBG)
@@ -183,6 +198,7 @@ public class SoundPlay : MonoBehaviour
 		bGAudioSource.Play ();
 	}
 
+	//暂停或恢复背景音乐
 	public static void PauseBG (bool isPause)
 	{
 		if (isPause)

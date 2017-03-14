@@ -11,9 +11,9 @@ public class WWWProvider : MonoBehaviour
 	readonly string DownLoadURL = "http://ezlearn.kudospark.com/";
 	readonly string NoNetWorkURL = "http://123.207.9.191";
 	readonly string GetServerURL = "/app2016/interface.php?schoolid=ezlearn&method=";
-	string URL = "http://110.65.10.229/ezlearn-appservice";
+	string URL = "http://110.65.10.229/ezlearn-appservice";//app交互接口
 	string RedirectURL = "";
-	public static string DownLoadAssetURL = "http://110.65.10.229/statics/upload";
+	public static string DownLoadAssetURL = "http://110.65.10.229/statics/upload";//素材下载地址
 	static WWWProvider instance;
 
 	public static WWWProvider Instance
@@ -65,6 +65,7 @@ public class WWWProvider : MonoBehaviour
 		}
 	}
 
+	//开始网络交互
 	public void StartWWWCommunication (string MethodName, WWWForm wf, Action<bool, string> OnSuccess = null)
 	{
 		//GetRedirectURL (MethodName);
